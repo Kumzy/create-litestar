@@ -9,6 +9,3 @@ dependencies = [
     "rich>=13.9.1",
     "ruff>=0.6.8",
 ]
-
-[tool.uv.workspace]
-members = ["create-litestar"]

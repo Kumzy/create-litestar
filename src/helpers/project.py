@@ -1,9 +1,10 @@
 import os
 import subprocess
+from pathlib import Path
 
 def create_project(
     app: str,
-    project_root: str
+    project_root: Path
 ) -> bool:
     args = [
         "uv",
@@ -25,8 +26,8 @@ def create_project(
 
     return os.path.exists(os.path.join(app, "pyproject.toml"))
 
-def add_dependencies(project_root: str, dependencies: list[str], dev: bool = False):
-    """Add dependencies selected"""
+def add_dependencies(project_root: Path, dependencies: list[str], dev: bool = False):
+    """Add selected dependencies"""
     args = ["uv", "add"]
     args.extend(dependencies)
 
@@ -44,3 +45,4 @@ def add_dependencies(project_root: str, dependencies: list[str], dev: bool = Fal
 
     decoded_stdout = stdout.decode("utf-8", errors="replace")
     print(decoded_stdout)
+

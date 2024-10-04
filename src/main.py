@@ -5,6 +5,7 @@ from rich.console import Console
 import os
 from helpers.validators import NameValidator
 from helpers.project import create_project, add_dependencies
+from helpers.gitignore import  add_gitignore
 console = Console()
 
 litestar_style = Style(
@@ -144,6 +145,8 @@ def main():
     result = create_project(project_name, new_project_root)
     deps = ["litestar", "advanced-alchemy", "ruff", "pytest"]
     dependencies = add_dependencies(new_project_root, deps)
+
+    add_gitignore(new_project_root)
 
 if __name__ == "__main__":
     main()

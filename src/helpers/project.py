@@ -14,18 +14,18 @@ def create_project(
         "--app"
     ]
 
-    process = subprocess.Popen(
-        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    process = subprocess.run(
+        args,
+        cwd=project_root,
+        check=True
     )
 
-    stdout, stderr = process.communicate()
-
     if process.returncode != 0:
-        raise Exception(f"Error initializing project: {stderr.decode('utf-8')}")
+        raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
 
     return os.path.exists(os.path.join(app, "pyproject.toml"))
 
-def add_dependencies(project_root: str, dependencies: list[str], dev: bool = False) -> bool:
+def add_dependencies(project_root: str, dependencies: list[str], dev: bool = False):
     """Add dependencies selected"""
     args = ["uv", "add"]
     args.extend(dependencies)

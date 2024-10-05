@@ -3,7 +3,7 @@ from questionary import Choice, Separator
 
 orm_choices: List[Union[Choice, Separator, str]]  = [
     Choice(
-        title="Litestar fullstack (react)",
+        title="SQLAlchemy + alembic",
         value=0,
         disabled="Not implemented yet"
     ),

@@ -21,7 +21,7 @@ console = Console()
 
 from pathlib import Path
 
-def find_project_root(marker_file='.git'):
+def get_project_root(marker_file='.git'):
     current_dir = Path.cwd()
     if (current_dir / marker_file).exists():
         return current_dir
@@ -33,12 +33,12 @@ def find_project_root(marker_file='.git'):
 
 
 def main():
+    project_root = get_project_root()
 
-    project_root = find_project_root()
-    print(project_root)
-    print("")
-    print("Litestar - The powerful, lightweight and flexible ASGI framework")
-    print("")
+    console.print()
+    console.print("[yellow bold]Litestar - The powerful, lightweight and flexible ASGI framework")
+    console.print()
+
     """Project name"""
     project_name = questionary.text(
         message="Project name:",

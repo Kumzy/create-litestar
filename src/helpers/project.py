@@ -1,6 +1,8 @@
 import os
 import subprocess
 from pathlib import Path
+from subprocess import CalledProcessError
+
 
 def create_project(
     app: str,
@@ -14,12 +16,14 @@ def create_project(
         "--no-workspace",
         "--app"
     ]
-
-    process = subprocess.run(
-        args,
-        cwd=project_root,
-        check=True
-    )
+    try:
+        process = subprocess.run(
+            args,
+            cwd=project_root,
+            check=True
+        )
+    except CalledProcessError:
+        raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
 
     if process.returncode != 0:
         raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")

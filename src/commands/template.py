@@ -3,7 +3,7 @@ from questionary import Choice, Separator
 
 template_choices: List[Union[Choice, Separator, str]]  = [
     Choice(
-        title="SqlAlchemy",
+        title="Litestar fullstack (react)",
         value=0,
         disabled="Not implemented yet"
     ),

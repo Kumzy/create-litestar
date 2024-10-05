@@ -10,4 +10,4 @@ def add_gitignore(project_root: Path):
         f.write(r.content)
 
     if not os.path.exists(os.path.join(project_root, ".gitignore")):
-        raise Exception(f"Error installing gitignore")
+        raise Exception("Error installing gitignore")

@@ -1,22 +1,23 @@
 import questionary
-from questionary import Separator
-from questionary import Style
 from rich.console import Console
 import os
 from helpers.validators import NameValidator
 from helpers.project import create_project, add_dependencies
 from helpers.gitignore import  add_gitignore
+
+from commands.logging import logging_choices
+from commands.template import template_choices
+from commands.orm import orm_choices
+from commands.object_type import object_type_choices
+from commands.web_server import web_server_choices
+from commands.openapi import openapi_choices
+from commands.plugins import plugin_choices
+
+from helpers.cli import litestar_style, get_qmark
+from helpers.constants import DEFAULT_PROJECT_NAME
+
 console = Console()
 
-litestar_style = Style(
-    [
-        ("separator", "fg:#6C6C6C"),
-        ("qmark", "fg:#FF9D00 bold"),
-        ("question", ""),
-        ("selected", "fg:#5F819D"),
-        ("pointer", "fg:#FF9D00 bold"),
-    ]
-)
 
 from pathlib import Path
 
@@ -35,14 +36,15 @@ def main():
 
     project_root = find_project_root()
     print(project_root)
+    print("")
     print("Litestar - The powerful, lightweight and flexible ASGI framework")
-
+    print("")
     """Project name"""
     project_name = questionary.text(
         message="Project name:",
-        qmark="✔",
+        qmark=get_qmark(),
         style=litestar_style,
-        default="litestar-project",
+        default=DEFAULT_PROJECT_NAME,
         validate=NameValidator,
     ).ask()
 
@@ -50,55 +52,63 @@ def main():
         exit(1)
 
     """Template"""
-    templates = ["Litestar fullstack (react)", "Litestar + htmx", "Litestar fullstack (inertia)", Separator(), "None"]
-
     selected_template = questionary.select(
         message="Create from a template?",
-        qmark="✔",
-        choices=templates,
+        qmark=get_qmark(),
+        choices=template_choices,
         style=litestar_style
     ).ask()
+
+    if selected_template is None:
+        exit(1)
 
     USE_TEMPLATE = True
     if selected_template == "None":
         USE_TEMPLATE = False
 
     """Logging"""
-    loggings = ["Python logging", "StructLog", "Picologging", Separator(), "None"]
-
     selected_logging = questionary.select(
         message="Add logging?",
-        qmark="✔",
-        choices=loggings,
+        qmark=get_qmark(),
+        choices=logging_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_logging is None:
+        exit(1)
 
     """ORM"""
-    orms = ["SqlAlchemy", "Picollo ORM", "Tortoise", Separator(), "None"]
-
     selected_orm = questionary.select(
         message="Add ORM?",
-        choices=orms,
+        qmark=get_qmark(),
+        choices=orm_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_orm is None:
+        exit(1)
 
     """Objects"""
-    objects = ["Dataclasses", "Pydantic models", "Pydantic dataclasses", "msgspec", "attrs", "TypedDict"]
-
     selected_object = questionary.select(
         message="Select object type",
-        choices=objects,
+        qmark=get_qmark(),
+        choices=object_type_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_orm is None:
+        exit(1)
 
     """Web server"""
-    web_servers = ["Granian", "Uvicorn", Separator(), "None"]
-
     selected_web_server = questionary.select(
         message="Add web server?",
-        choices=web_servers,
+        qmark=get_qmark(),
+        choices=web_server_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_web_server is None:
+        exit(1)
 
     """Test"""
     selected_test = questionary.confirm(
@@ -106,33 +116,28 @@ def main():
         style=litestar_style,
     ).skip_if(USE_TEMPLATE).ask()
 
-    """Automatic schema documentation"""
-    openapi_schemas = [
-        "Scalar",
-        "RapiDoc",
-        "Swagger-UI",
-        "Spotlight Elements",
-        "Redoc",
-        Separator(),
-        "None"
-    ]
+    if selected_test is None:
+        exit(1)
 
+    """Automatic schema documentation"""
     selected_openapi_schema = questionary.select(
         message="Add automatic schema documentation?",
-        choices=openapi_schemas,
+        choices=openapi_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_openapi_schema is None:
+        exit(1)
 
     """Plugins"""
-    plugins = [
-        "SAQ",
-    ]
-
     selected_plugins = questionary.checkbox(
         message="Add plugins?",
-        choices=plugins,
+        choices=plugin_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_plugins is None:
+        exit(1)
 
     print(f"Project generation in {project_root}/output")
     # print(f"Project generation in {project_root}/{project_name}")

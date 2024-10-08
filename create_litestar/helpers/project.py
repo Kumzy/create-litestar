@@ -63,3 +63,20 @@ def copy_project(template_path: Path, project_root: Path, data: dict[str: Any]) 
         cleanup_on_error=True,
         quiet=True
     )
+
+def remove_files(project_root: Path):
+   # Remove files, especially unwanted files created by `uv init`
+    files = ['hello.py']
+
+
+    for file in files:
+        try:
+            if os.path.exists(project_root.joinpath(file)):
+                os.remove(project_root.joinpath(file))
+                print(f"File {file} has been removed successfully")
+        except FileNotFoundError:
+            print(f"File {file} does not exist")
+        except PermissionError:
+            print(f"Permission denied: unable to delete {file}")
+        except Exception as e:
+            print(f"An error occurred while trying to delete {file}: {e}")

@@ -3,7 +3,7 @@ from rich.console import Console
 import os
 import sys
 from helpers.validators import NameValidator
-from helpers.project import create_project, add_dependencies, copy_project
+from helpers.project import create_project, add_dependencies, copy_project, remove_files
 from helpers.gitignore import  add_gitignore
 from model.project import Project
 
@@ -165,6 +165,7 @@ def main():
     add_gitignore(new_project_root)
 
     copy_project(template_path=template_path, project_root=new_project_root, data=project.__dict__)
+    remove_files()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,12 @@
+from advanced_alchemy.extensions.litestar import SQLAlchemyPlugin
+{%- if use_logging and logging == "structlog" %}
+from litestar.plugins.structlog import StructlogPlugin
+{%- endif %}
+
+from litestar_granian import GranianPlugin
+
+from app.config import app as config
+
+{%- if use_logging and logging == "structlog" %}
+structlog = StructlogPlugin(config=config.log)
+{%- endif %}

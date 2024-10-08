@@ -2,6 +2,8 @@ import os
 import subprocess
 from pathlib import Path
 from subprocess import CalledProcessError
+from typing import Any
+from copier import run_copy
 
 
 def create_project(
@@ -14,7 +16,8 @@ def create_project(
         "--name",
         app,
         "--no-workspace",
-        "--app"
+        "--app",
+        "--no-readme"
     ]
     try:
         process = subprocess.run(
@@ -50,3 +53,13 @@ def add_dependencies(project_root: Path, dependencies: list[str], dev: bool = Fa
     decoded_stdout = stdout.decode("utf-8", errors="replace")
     print(decoded_stdout)
 
+def copy_project(template_path: Path, project_root: Path, data: dict[str: Any]) -> bool:
+
+    # Run copier
+    run_copy(
+        src_path=str(template_path),
+        dst_path=project_root,
+        data=data,
+        cleanup_on_error=True,
+        quiet=True
+    )

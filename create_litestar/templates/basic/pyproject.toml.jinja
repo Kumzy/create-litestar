@@ -1,0 +1,129 @@
+[project]
+name = "{{project_name}}"
+version = "0.1.0"
+description = "{{project_description}}"
+requires-python = ">=3.12"
+dependencies = [
+    "advanced-alchemy>=0.20.0",
+    "litestar>=2.12.1",
+    "pytest>=8.3.3",
+    "ruff>=0.7.0",
+    "structlog>=24.4.0",
+    "uvicorn>=0.32.0",
+]
+
+[project.scripts]
+app = "app.__main__:run_cli"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.3",
+    "ruff>=0.7.0",
+    "mypy>=1.11.2",
+]
+
+[tool.codespell]
+count = ""
+quiet-level = 3
+ignore-words-list = "alog"
+skip = "*.min.js"
+
+[tool.ruff]
+line-length = 120
+src = ["app", "tests"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["ANN101", "ANN102", "ANN401", "PLR0913", "RUF012", "COM812", "ISC001", "ERA001", "TD", "FIX002"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "app",
+    "tests",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+#"**/*.*" = [
+#    "ANN101",
+#    "ANN401",
+#    "ANN102",
+#    "TD",
+#    "FIX002",
+#    "RUF012", # ClassVar Annotations - # TODO: Investigate/Fix
+#    "FBT001", # Boolean typed positional argument in function definition
+#    "FBT002", # Boolean default positional argument in function definition
+#    "FBT003", # Boolean Boolean default positional argument in function definition
+#    "B008", # Do not perform function calls in argument defaults
+#]
+"**/*.*" = ["PLR0913", "SLF001", "D104", "E501", "N815", "N999"]
+"tests/**/*.*" = [
+    "S101",
+    "D",
+    "ARG",
+    "PGH",
+    "B",
+    "FBT",
+    "PTH",
+    "A",
+    "TCH",
+    "DTZ",
+    "TRY",
+    "EM",
+    "S",
+    "N",
+    "SIM",
+    "PLR",
+    "BLE",
+    "RSE",
+    "C901",
+    "PLW",
+    "G",
+    "PIE",
+    "RUF012",
+    "FA",
+    "ANN",
+    "SLF",
+    "PT",
+    "INP",
+    "TD",
+    "FIX",
+    "FBT",
+    "PLR0913", # too many arguments
+    "PT",
+    "PLR2004",
+    "TID252",
+    "T",
+]
+"docs/**/*.*" = [
+    "S",
+    "B",
+    "DTZ",
+    "A",
+    "TCH",
+    "ERA",
+    "D",
+    "RET",
+    "E731",
+    "RUF012",
+    "FA100",
+    "ARG001",
+]
+"docs/conf.py" = ["FIX002", "ARG001", "INP001"]
+"tools/**/*.*" = ["D", "ARG", "EM", "TRY", "G", "FBT", "INP"]

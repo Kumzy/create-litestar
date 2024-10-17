@@ -7,7 +7,7 @@ from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import ScalarRenderPlugin
 {%- endif %}
 
-from app.__metadata__ import __version__
+#from app.__metadata__ import __version__
 from app.config.settings import get_settings
 
 settings = get_settings()
@@ -15,7 +15,7 @@ settings = get_settings()
 # --- Config
 openapi_config = OpenAPIConfig(
     title=settings.app.NAME,
-    version=__version__,
+    version="0.1",
     path="/api",
     use_handler_docstrings=True,
     render_plugins=[

@@ -3,7 +3,7 @@ from rich.console import Console
 import os
 import sys
 from helpers.validators import NameValidator
-from helpers.project import create_project, add_dependencies, copy_project, remove_files
+from helpers.project import create_project, add_dependencies, copy_project, remove_files, sync_project
 from helpers.gitignore import  add_gitignore
 from model.project import Project
 
@@ -120,6 +120,7 @@ def main():
     """Test"""
     selected_test = questionary.confirm(
         message="Add pytest for unit tests?",
+        qmark=get_qmark(),
         style=litestar_style,
     ).skip_if(USE_TEMPLATE).ask()
 
@@ -129,6 +130,7 @@ def main():
     """Automatic schema documentation"""
     selected_openapi_schema = questionary.select(
         message="Add automatic schema documentation?",
+        qmark=get_qmark(),
         choices=openapi_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
@@ -141,6 +143,7 @@ def main():
     """Plugins"""
     selected_plugins = questionary.checkbox(
         message="Add plugins?",
+        qmark=get_qmark(),
         choices=plugin_choices,
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
@@ -148,28 +151,38 @@ def main():
     if selected_plugins is None:
         exit(1)
 
-    print(f"Project generation in {project_root}/output")
+    print()
+    print(f"Scaffolding project in in {project_root.joinpath("output")}")
     # print(f"Project generation in {project_root}/{project_name}")
 
-    new_project_root = Path(get_project_root()).joinpath('output')
+    new_project_root = Path(get_project_root()).joinpath(project.project_name)
     if is_debug: console.log(str(new_project_root))
     template_path = Path(get_project_root()).joinpath('create_litestar', 'templates', 'basic')
     if is_debug: console.log(str(template_path))
 
     if is_debug: console.log(project.__dict__)
 
-    if not os.path.exists(new_project_root):
-        os.makedirs(new_project_root)
+    # if not os.path.exists(new_project_root):
+    #     os.makedirs(new_project_root)
+    #
+    # os.chdir(new_project_root)
 
-    os.chdir(new_project_root)
     result = create_project(project.project_name, new_project_root)
-    deps = ["litestar", "advanced-alchemy", "ruff", "pytest", "structlog", "uvicorn"]
-    dependencies = add_dependencies(new_project_root, deps)
+    # deps = ["litestar", "advanced-alchemy", "ruff", "pytest", "structlog", "uvicorn"]
+    # dependencies = add_dependencies(new_project_root, deps)
+
 
     add_gitignore(new_project_root)
 
     copy_project(template_path=template_path, project_root=new_project_root, data=project)
+    sync_project(project_root=new_project_root)
     remove_files(new_project_root)
+
+    console.print()
+    console.print("Done. Now run:")
+    console.print()
+    console.print(f"[yellow bold]    cd {project.project_name}")
+    console.print("[yellow bold]    uv run app run")
 
 if __name__ == "__main__":
     main()

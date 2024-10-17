@@ -2,8 +2,11 @@ from create_litestar.commands.logging import LoggingEnum
 from create_litestar.commands.orm import OrmEnum
 from create_litestar.commands.openapi import OpenApiEnum
 
+from create_litestar.helpers.constants import DEFAULT_PROJECT_DESCRIPTION
+
 class Project:
     project_name: str
+    project_description: str = DEFAULT_PROJECT_DESCRIPTION
     """Logging"""
     use_logging: bool
     logging: str

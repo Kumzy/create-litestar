@@ -11,23 +11,21 @@ def create_project(
     app: str,
     project_root: Path
 ) -> bool:
-    args = [
-        "uv",
-        "init",
-        "--name",
-        app,
-        "--no-workspace",
-        "--app",
-        "--no-readme"
-    ]
-    # Run the installation process
-    process = subprocess.Popen(
-        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    stdout, stderr = process.communicate()
+    if os.path.exists(project_root):
+        print(f"The directory already exists and is not empty")
+    try:
+        os.mkdir(app)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-    if process.returncode != 0:
-        raise Exception(f"Error initializing project: {stderr.decode('utf-8')}")
+    # # Run the installation process
+    # process = subprocess.Popen(
+    #     args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    # )
+    # stdout, stderr = process.communicate()
+    #
+    # if process.returncode != 0:
+    #     raise Exception(f"Error initializing project: {stderr.decode('utf-8')}")
 
     return os.path.exists(os.path.join(app, "pyproject.toml"))
 
@@ -71,11 +69,28 @@ def copy_project(template_path: Path, project_root: Path, data: Project) -> bool
     # Run copier
     run_copy(
         src_path=str(template_path),
-        dst_path=Path(project_root).joinpath('app'),
+        dst_path=project_root,
         data=data.__dict__,
         cleanup_on_error=True,
         quiet=True
     )
+
+def sync_project(project_root: Path):
+    """Run uv sync to create the venv directory"""
+    args = ["uv", "sync", "--quiet"]
+
+    # Run the installation process
+    process = subprocess.Popen(
+        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = process.communicate()
+
+    if process.returncode != 0:
+        raise Exception(f"Error installing venv: {stderr.decode('utf-8')}")
+
+    decoded_stdout = stdout.decode("utf-8", errors="replace")
+    print(decoded_stdout)
+
 
 def remove_files(project_root: Path):
    # Remove files, especially unwanted files created by `uv init`

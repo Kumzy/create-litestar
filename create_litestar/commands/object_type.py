@@ -1,34 +1,44 @@
+from enum import StrEnum
 from typing import List
 from questionary import Choice
+
+class ObjectTypeEnum(StrEnum):
+    DATACLASSES = 'dataclasses'
+    PYDANTICMODELS = 'pydantic_models'
+    PYDANTICDATACLASSES = 'pydantic_dataclasses'
+    MSGSPEC = 'msgspec'
+    ATTRS = 'attrs'
+    TYPEDDICT = 'typed_dict'
+    NONE = 'none'
 
 object_type_choices: List[Choice]  = [
     Choice(
         title="Dataclasses",
-        value=0,
+        value=ObjectTypeEnum.DATACLASSES,
         disabled="Not implemented yet"
     ),
     Choice(
         title="Pydantic models",
-        value=1,
+        value=ObjectTypeEnum.PYDANTICMODELS,
         disabled="Not implemented yet"
     ),
     Choice(
         title="Pydantic dataclasses",
-        value=2,
+        value=ObjectTypeEnum.PYDANTICDATACLASSES,
         disabled="Not implemented yet"
     ),
     Choice(
         title="msgspec",
-        value=3,
+        value=ObjectTypeEnum.MSGSPEC,
     ),
     Choice(
         title="attrs",
-        value=4,
+        value=ObjectTypeEnum.ATTRS,
         disabled="Not implemented yet"
     ),
     Choice(
         title="TypedDict",
-        value=5,
+        value=ObjectTypeEnum.TYPEDDICT,
         disabled="Not implemented yet"
     ),
 ]

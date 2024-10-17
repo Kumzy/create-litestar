@@ -1,22 +1,31 @@
+from enum import StrEnum
 from typing import List, Union
 from questionary import Choice, Separator
+
+class OrmEnum(StrEnum):
+    SQLALCHEMY = 'sqlalchemy'
+    PICOLLO = 'picollo'
+    TORTOISE = 'tortoise'
+    NONE = 'none'
 
 orm_choices: List[Union[Choice, Separator, str]]  = [
     Choice(
         title="SQLAlchemy + alembic",
-        value=0,
-        disabled="Not implemented yet"
+        value=OrmEnum.SQLALCHEMY,
     ),
     Choice(
         title="Picollo ORM",
-        value=1,
+        value=OrmEnum.PICOLLO,
         disabled="Not implemented yet"
     ),
     Choice(
         title="Tortoise",
-        value=2,
+        value=OrmEnum.TORTOISE,
         disabled="Not implemented yet"
     ),
     Separator(),
-    "None"
+    Choice(
+        title="None",
+        value=OrmEnum.NONE
+    )
 ]

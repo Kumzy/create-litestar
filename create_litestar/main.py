@@ -127,6 +127,18 @@ def main():
     if selected_test is None:
         exit(1)
 
+    """CORS/CSRF"""
+    selected_cors_csrf = questionary.confirm(
+        message="Add CORS/CSRF?",
+        qmark=get_qmark(),
+        style=litestar_style,
+    ).skip_if(USE_TEMPLATE).ask()
+
+    if selected_cors_csrf is None:
+        exit(1)
+
+    project.enable_cors_csrf = bool(selected_cors_csrf)
+
     """Automatic schema documentation"""
     selected_openapi_schema = questionary.select(
         message="Add automatic schema documentation?",

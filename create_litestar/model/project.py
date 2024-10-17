@@ -16,6 +16,8 @@ class Project:
     """OpenAPI"""
     use_openapi: bool
     openapi: str
+    """CORS/CSRF"""
+    enable_cors_csrf: bool = False
 
     def set_logging(self, logging: LoggingEnum | None):
         if logging and logging  != LoggingEnum.NONE:

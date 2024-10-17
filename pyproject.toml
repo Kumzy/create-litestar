@@ -16,6 +16,10 @@ extend-exclude = ["src/templates/basic"]
 
 [tool.uv]
 dev-dependencies = [
+    # Autocomplete
+    "litestar>=2.12.1",
+    "structlog>=24.4.0",
+    # Linting and tests
     "mypy>=1.12.0",
     "pre-commit>=3.5.0",
     "pyright>=1.1.385",

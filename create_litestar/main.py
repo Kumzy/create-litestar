@@ -8,7 +8,7 @@ from helpers.gitignore import  add_gitignore
 from model.project import Project
 
 from commands.logging import logging_choices
-from commands.template import template_choices
+from commands.template import template_choices, TemplateEnum
 from commands.orm import orm_choices
 from commands.object_type import object_type_choices
 from commands.web_server import web_server_choices
@@ -66,7 +66,7 @@ def main():
         exit(1)
 
     USE_TEMPLATE = True
-    if selected_template == "None":
+    if selected_template == TemplateEnum.NONE:
         USE_TEMPLATE = False
 
     """Logging"""
@@ -92,6 +92,8 @@ def main():
 
     if selected_orm is None:
         exit(1)
+
+    project.set_orm(selected_orm)
 
     """Objects"""
     selected_object = questionary.select(
@@ -134,6 +136,8 @@ def main():
     if selected_openapi_schema is None:
         exit(1)
 
+    project.set_openapi(selected_openapi_schema)
+
     """Plugins"""
     selected_plugins = questionary.checkbox(
         message="Add plugins?",
@@ -149,7 +153,7 @@ def main():
 
     new_project_root = Path(get_project_root()).joinpath('output')
     if is_debug: console.log(str(new_project_root))
-    template_path = Path(get_project_root()).joinpath('src', 'templates', 'basic')
+    template_path = Path(get_project_root()).joinpath('create_litestar', 'templates', 'basic')
     if is_debug: console.log(str(template_path))
 
     if is_debug: console.log(project.__dict__)
@@ -159,13 +163,13 @@ def main():
 
     os.chdir(new_project_root)
     result = create_project(project.project_name, new_project_root)
-    deps = ["litestar", "advanced-alchemy", "ruff", "pytest"]
+    deps = ["litestar", "advanced-alchemy", "ruff", "pytest", "structlog", "uvicorn"]
     dependencies = add_dependencies(new_project_root, deps)
 
     add_gitignore(new_project_root)
 
-    copy_project(template_path=template_path, project_root=new_project_root, data=project.__dict__)
-    remove_files()
+    copy_project(template_path=template_path, project_root=new_project_root, data=project)
+    remove_files(new_project_root)
 
 if __name__ == "__main__":
     main()

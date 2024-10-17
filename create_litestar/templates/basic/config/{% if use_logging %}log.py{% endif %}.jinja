@@ -1,0 +1,58 @@
+"""Logging settings for Litestar."""
+
+import logging
+
+{%- if use_logging and logging == "structlog" %}
+from litestar.logging.config import LoggingConfig, StructLoggingConfig
+from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
+{%- endif %}
+
+from litestar.middleware.logging import LoggingMiddlewareConfig
+
+from app.config.settings import get_settings
+
+settings = get_settings()
+
+# --- Config
+log_config = StructlogConfig(
+    structlog_logging_config=StructLoggingConfig(
+        log_exceptions="always",
+        standard_lib_logging_config=LoggingConfig(
+            root={"level": logging.getLevelName(settings.log.LEVEL), "handlers": ["queue_listener"]},
+            loggers={
+                "granian.access": {
+                    "propagate": False,
+                    "level": settings.log.GRANIAN_ACCESS_LEVEL,
+                    "handlers": ["queue_listener"],
+                },
+                "granian.error": {
+                    "propagate": False,
+                    "level": settings.log.GRANIAN_ERROR_LEVEL,
+                    "handlers": ["queue_listener"],
+                },
+                "aiosqlite": {
+                    "propagate": False,
+                    "level": 30,
+                    "handlers": ["queue_listener"],
+                },
+                "httpcore": {
+                    "propagate": False,
+                    "level": 30,
+                    "handlers": ["queue_listener"],
+                },
+                "httpx": {
+                    "propagate": False,
+                    "level": 30,
+                    "handlers": ["queue_listener"],
+                },
+            },
+        ),
+    ),
+    middleware_logging_config=LoggingMiddlewareConfig(
+        request_log_fields=["method", "path", "path_params", "query"],
+        response_log_fields=["status_code"],
+    ),
+)
+
+# --- Plugin instances
+structlog_plugin = StructlogPlugin(config=log_config)

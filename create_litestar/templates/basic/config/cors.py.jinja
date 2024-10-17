@@ -1,0 +1,18 @@
+"""Cors settings for Litestar."""
+
+from typing import cast
+
+from litestar.config.cors import CORSConfig
+from litestar.config.csrf import CSRFConfig
+
+from app.config.settings import get_settings
+
+settings = get_settings()
+
+# --- Config
+csrf = CSRFConfig(
+    secret=settings.app.SECRET_KEY,
+    cookie_secure=settings.app.CSRF_COOKIE_SECURE,
+    cookie_name=settings.app.CSRF_COOKIE_NAME,
+)
+cors = CORSConfig(allow_origins=cast("list[str]", settings.app.ALLOWED_CORS_ORIGINS))

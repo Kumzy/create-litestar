@@ -2,8 +2,9 @@ import os
 import subprocess
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from copier import run_copy
+from create_litestar.model.project import Project
 
 
 def create_project(
@@ -19,19 +20,32 @@ def create_project(
         "--app",
         "--no-readme"
     ]
-    try:
-        process = subprocess.run(
-            args,
-            cwd=project_root,
-            check=True
-        )
-    except CalledProcessError:
-        raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
+    # Run the installation process
+    process = subprocess.Popen(
+        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = process.communicate()
 
     if process.returncode != 0:
-        raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
+        raise Exception(f"Error initializing project: {stderr.decode('utf-8')}")
 
     return os.path.exists(os.path.join(app, "pyproject.toml"))
+
+    # decoded_stdout = stdout.decode("utf-8", errors="replace")
+    # print(decoded_stdout)
+    # try:
+    #     process = subprocess.run(
+    #         args,
+    #         cwd=project_root,
+    #         check=True
+    #     )
+    # except CalledProcessError:
+    #     raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
+    #
+    # if process.returncode != 0:
+    #     raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
+    #
+    # return os.path.exists(os.path.join(app, "pyproject.toml"))
 
 def add_dependencies(project_root: Path, dependencies: list[str], dev: bool = False):
     """Add selected dependencies"""
@@ -53,13 +67,12 @@ def add_dependencies(project_root: Path, dependencies: list[str], dev: bool = Fa
     decoded_stdout = stdout.decode("utf-8", errors="replace")
     print(decoded_stdout)
 
-def copy_project(template_path: Path, project_root: Path, data: dict[str: Any]) -> bool:
-
+def copy_project(template_path: Path, project_root: Path, data: Project) -> bool:
     # Run copier
     run_copy(
         src_path=str(template_path),
-        dst_path=project_root,
-        data=data,
+        dst_path=Path(project_root).joinpath('app'),
+        data=data.__dict__,
         cleanup_on_error=True,
         quiet=True
     )

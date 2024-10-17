@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from litestar import Litestar
+
+
+def create_app() -> Litestar:
+    """Create ASGI application."""
+
+    from litestar import Litestar
+
+    from app.config.settings import get_settings
+    from app.config.cors import cors
+    {%- if use_logging and logging == "structlog" %}
+    from app.config.log import structlog_plugin
+    {%- endif %}
+    {%- if use_openapi %}
+    from app.config.openapi import openapi_config
+    {%- endif %}
+    from app.config.routes import route_handlers
+
+    settings = get_settings()
+
+    return Litestar(
+        cors_config=cors,
+        debug=settings.app.DEBUG,
+        {%- if use_openapi %}
+        openapi_config=openapi_config,
+        {%- endif %}
+        route_handlers=route_handlers,
+        plugins=[
+            {%- if use_logging and logging == "structlog" %}
+            structlog_plugin,
+            {%- endif %}
+        ],
+    )
+
+
+app = create_app()

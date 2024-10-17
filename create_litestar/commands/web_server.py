@@ -1,17 +1,25 @@
+from enum import StrEnum
 from typing import List, Union
 from questionary import Choice, Separator
+
+class WebServerEnum(StrEnum):
+    GRANIAN = 'granian'
+    UVICORN = 'uvicon'
+    NONE = 'none'
 
 web_server_choices: List[Union[Choice, Separator, str]]  = [
     Choice(
         title="Granian",
-        value=0,
+        value=WebServerEnum.GRANIAN,
         disabled="Not implemented yet"
     ),
     Choice(
         title="Uvicorn",
-        value=1,
-        disabled="Not implemented yet"
+        value=WebServerEnum.UVICORN
     ),
     Separator(),
-    "None"
+    Choice(
+        title="None",
+        value=WebServerEnum.NONE
+    ),
 ]

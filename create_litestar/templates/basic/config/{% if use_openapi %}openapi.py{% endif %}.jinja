@@ -1,0 +1,28 @@
+"""OpenAPI settings for Litestar."""
+
+
+from litestar.openapi.config import OpenAPIConfig
+
+{%- if openapi == "scalar" %}
+from litestar.openapi.plugins import ScalarRenderPlugin
+{%- endif %}
+
+from app.__metadata__ import __version__
+from app.config.settings import get_settings
+
+settings = get_settings()
+
+# --- Config
+openapi_config = OpenAPIConfig(
+    title=settings.app.NAME,
+    version=__version__,
+    path="/api",
+    use_handler_docstrings=True,
+    render_plugins=[
+        {%- if openapi == "scalar" %}
+        ScalarRenderPlugin(
+            version="latest",
+        )
+        {%- endif %}
+    ],
+)

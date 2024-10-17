@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, Final
 from advanced_alchemy.utils.text import slugify
 from litestar.serialization import decode_json, encode_json
 from litestar.utils.module_loader import module_to_os_path
-from redis.asyncio import Redis
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -333,39 +332,6 @@ class LogSettings:
     """Level to log uvicorn error logs."""
 {%- endif %}
 
-@dataclass
-class RedisSettings:
-    URL: str = field(default_factory=lambda: os.getenv("REDIS_URL", "redis://localhost:6379/0"))
-    """A Redis connection URL."""
-    SOCKET_CONNECT_TIMEOUT: int = field(default_factory=lambda: int(os.getenv("REDIS_CONNECT_TIMEOUT", "5")))
-    """Length of time to wait (in seconds) for a connection to become
-    active."""
-    HEALTH_CHECK_INTERVAL: int = field(default_factory=lambda: int(os.getenv("REDIS_HEALTH_CHECK_INTERVAL", "5")))
-    """Length of time to wait (in seconds) before testing connection health."""
-    SOCKET_KEEPALIVE: bool = field(
-        default_factory=lambda: os.getenv("REDIS_SOCKET_KEEPALIVE", "True") in TRUE_VALUES,
-    )
-    """Length of time to wait (in seconds) between keepalive commands."""
-    _redis_instance: Redis | None = None
-    """Redis instance generated from settings."""
-
-    @property
-    def client(self) -> Redis:
-        return self.get_client()
-
-    def get_client(self) -> Redis:
-        if self._redis_instance is not None:
-            return self._redis_instance
-        self._redis_instance = Redis.from_url(
-            url=self.URL,
-            encoding="utf-8",
-            decode_responses=False,
-            socket_connect_timeout=self.SOCKET_CONNECT_TIMEOUT,
-            socket_keepalive=self.SOCKET_KEEPALIVE,
-            health_check_interval=self.HEALTH_CHECK_INTERVAL,
-        )
-        return self._redis_instance
-
 
 @dataclass
 class AppSettings:
@@ -434,10 +400,9 @@ class Settings:
     db: DatabaseSettings = field(default_factory=DatabaseSettings)
     vite: ViteSettings = field(default_factory=ViteSettings)
     server: ServerSettings = field(default_factory=ServerSettings)
-    { % - if use_logging and logging == "structlog" %}
+    {%- if use_logging and logging == "structlog" %}
     log: LogSettings = field(default_factory=LogSettings)
-    { % - endif %}
-    redis: RedisSettings = field(default_factory=RedisSettings)
+    {%- endif %}
     saq: SaqSettings = field(default_factory=SaqSettings)
 
     @classmethod

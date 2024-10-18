@@ -10,6 +10,9 @@ dependencies = [
     "ruff>=0.7.0",
     "structlog>=24.4.0",
     "uvicorn>=0.32.0",
+    {%- if use_web_server and web_server == 'granian' %}
+    "litestar-granian>=0.6.0",
+    {%- endif %}
 ]
 
 [project.scripts]

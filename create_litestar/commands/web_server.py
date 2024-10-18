@@ -11,7 +11,6 @@ web_server_choices: List[Union[Choice, Separator, str]]  = [
     Choice(
         title="Granian",
         value=WebServerEnum.GRANIAN,
-        disabled="Not implemented yet"
     ),
     Choice(
         title="Uvicorn",

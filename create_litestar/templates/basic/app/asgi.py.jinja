@@ -21,6 +21,9 @@ def create_app() -> Litestar:
     {%- if use_openapi %}
     from app.config.openapi import openapi_config
     {%- endif %}
+    {%- if use_web_server and web_server == 'granian' %}
+    from app.config.web_server import granian_plugin
+    {%- endif %}
     from app.config.routes import route_handlers
 
     settings = get_settings()
@@ -39,6 +42,10 @@ def create_app() -> Litestar:
             {%- if use_logging and logging == "structlog" %}
             structlog_plugin,
             {%- endif %}
+            {%- if use_web_server and web_server == 'granian' %}
+            granian_plugin,
+            {%- endif %}
+
         ],
     )
 

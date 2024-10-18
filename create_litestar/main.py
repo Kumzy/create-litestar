@@ -103,8 +103,10 @@ def main():
         style=litestar_style
     ).skip_if(USE_TEMPLATE).ask()
 
-    if selected_orm is None:
+    if selected_object is None:
         exit(1)
+
+    project.set_object_type(selected_object)
 
     """Web server"""
     selected_web_server = questionary.select(
@@ -117,6 +119,8 @@ def main():
     if selected_web_server is None:
         exit(1)
 
+    project.set_web_server(selected_web_server)
+
     """Test"""
     selected_test = questionary.confirm(
         message="Add pytest for unit tests?",
@@ -126,6 +130,9 @@ def main():
 
     if selected_test is None:
         exit(1)
+
+    project.use_test = bool(selected_test)
+
 
     """CORS/CSRF"""
     selected_cors_csrf = questionary.confirm(
@@ -137,7 +144,7 @@ def main():
     if selected_cors_csrf is None:
         exit(1)
 
-    project.enable_cors_csrf = bool(selected_cors_csrf)
+    project.use_cors_csrf = bool(selected_cors_csrf)
 
     """Automatic schema documentation"""
     selected_openapi_schema = questionary.select(
@@ -165,7 +172,6 @@ def main():
 
     print()
     print(f"Scaffolding project in in {project_root.joinpath("output")}")
-    # print(f"Project generation in {project_root}/{project_name}")
 
     new_project_root = Path(get_project_root()).joinpath(project.project_name)
     if is_debug: console.log(str(new_project_root))
@@ -195,6 +201,7 @@ def main():
     console.print()
     console.print(f"[yellow bold]    cd {project.project_name}")
     console.print("[yellow bold]    uv run app run")
+    console.print()
 
 if __name__ == "__main__":
     main()

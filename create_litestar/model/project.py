@@ -1,6 +1,8 @@
 from create_litestar.commands.logging import LoggingEnum
 from create_litestar.commands.orm import OrmEnum
 from create_litestar.commands.openapi import OpenApiEnum
+from create_litestar.commands.object_type import ObjectTypeEnum
+from create_litestar.commands.web_server import WebServerEnum
 
 from create_litestar.helpers.constants import DEFAULT_PROJECT_DESCRIPTION
 
@@ -13,11 +15,18 @@ class Project:
     """ORM"""
     use_orm: bool
     orm: str
+    """Object type"""
+    object_type: str
+    """Web server"""
+    use_web_server: bool
+    web_server: str
     """OpenAPI"""
     use_openapi: bool
     openapi: str
+    """Test"""
+    use_test: bool
     """CORS/CSRF"""
-    enable_cors_csrf: bool = False
+    use_cors_csrf: bool = False
 
     def set_logging(self, logging: LoggingEnum | None):
         if logging and logging  != LoggingEnum.NONE:
@@ -39,3 +48,13 @@ class Project:
             self.openapi = openapi.value
         else:
             self.use_openapi = False
+
+    def set_object_type(self, object_type: ObjectTypeEnum):
+        self.object_type = object_type.value
+
+    def set_web_server(self, web_server: WebServerEnum | None):
+        if web_server and web_server != OpenApiEnum.NONE:
+            self.use_web_server = True
+            self.web_server = web_server.value
+        else:
+            self.use_web_server = False

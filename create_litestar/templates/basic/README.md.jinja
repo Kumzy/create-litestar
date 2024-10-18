@@ -9,3 +9,16 @@ With [`uv`](https://github.com/astral-sh/uv):
 ```bash
 uv run app run
 ```
+
+## Functionalities
+
+| Functionality     |Enabled|
+|:------------------|:|
+| Logging           |{%- if use_logging and logging == 'structlog' %}Structlog{%- endif %} |
+| ORM               |{%- if use_orm and orm == 'sqlalchemy' %}SQLAlchemy{%- endif %}|
+| Object type       |{%- if object_type == 'msgspec' %}msgspec{%- endif %}|
+| Web server        |{%- if use_web_server and orm == 'uvicorn' %}Uvicorn{%- endif %}|
+| Open API          |{%- if use_open_api and open_api == 'scalar' %}Scalar{%- endif %}|
+| Tests             |{%- if use_test == True %}Enabled{%- else %}Disabled{%- endif %}|
+| CORS/CSRF         |{%- if use_cors_csrf == True %}Enabled{%- else %}Disabled{%- endif %}|
+| Plugin            |None|

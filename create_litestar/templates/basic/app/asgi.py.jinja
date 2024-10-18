@@ -12,7 +12,7 @@ def create_app() -> Litestar:
     from litestar import Litestar
 
     from app.config.settings import get_settings
-    {%- if enable_cors_csrf  %}
+    {%- if use_cors_csrf  %}
     from app.config.cors import cors, csrf
     {%- endif %}
     {%- if use_logging and logging == "structlog" %}
@@ -26,7 +26,7 @@ def create_app() -> Litestar:
     settings = get_settings()
 
     return Litestar(
-        {%- if enable_cors_csrf %}
+        {%- if use_cors_csrf %}
         cors_config=cors,
         csrf_config=csrf,
         {%- endif %}

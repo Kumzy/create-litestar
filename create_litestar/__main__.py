@@ -1,42 +1,30 @@
 import questionary
 from rich.console import Console
-import os
 import sys
-from helpers.validators import NameValidator
-from helpers.project import create_project, add_dependencies, copy_project, remove_files, sync_project
-from helpers.gitignore import  add_gitignore
-from model.project import Project
+from create_litestar.helpers.validators import NameValidator
+from create_litestar.helpers.project import create_project, copy_project, remove_files, sync_project
+from create_litestar.model.project import Project
 
-from commands.logging import logging_choices
-from commands.template import template_choices, TemplateEnum
-from commands.orm import orm_choices
-from commands.object_type import object_type_choices
-from commands.web_server import web_server_choices
-from commands.openapi import openapi_choices
-from commands.plugins import plugin_choices
+from create_litestar.commands.logging import logging_choices
+from create_litestar.commands.template import template_choices, TemplateEnum
+from create_litestar.commands.orm import orm_choices
+from create_litestar.commands.object_type import object_type_choices
+from create_litestar.commands.web_server import web_server_choices
+from create_litestar.commands.openapi import openapi_choices
+from create_litestar.commands.plugins import plugin_choices
 
-from helpers.cli import litestar_style, get_qmark
-from helpers.constants import DEFAULT_PROJECT_NAME
+from create_litestar.helpers.cli import litestar_style, get_qmark
+from create_litestar.helpers.constants import DEFAULT_PROJECT_NAME
 
 console = Console()
 
 
 from pathlib import Path
 
-def get_project_root(marker_file='.git') -> Path:
-    current_dir = Path.cwd()
-    if (current_dir / marker_file).exists():
-        return current_dir
-    for parent in current_dir.parents:
-        if (parent / marker_file).exists():
-            return parent
-    raise FileNotFoundError("Project root not found")
-
 
 def main():
     # To be replaced but quick
     is_debug = any(x in '--debug' for x in sys.argv)
-    project_root = get_project_root()
     project = Project()
     console.print()
     console.print("[yellow bold]Litestar - The powerful, lightweight and flexible ASGI framework")
@@ -170,12 +158,13 @@ def main():
     if selected_plugins is None:
         exit(1)
 
-    print()
-    print(f"Scaffolding project in in {project_root.joinpath("output")}")
+    new_project_root = Path.cwd().joinpath(project.project_name)
 
-    new_project_root = Path(get_project_root()).joinpath(project.project_name)
+    print()
+    print(f"Scaffolding project in in {new_project_root}")
+
     if is_debug: console.log(str(new_project_root))
-    template_path = Path(get_project_root()).joinpath('create_litestar', 'templates', 'basic')
+    template_path = Path(__file__).parent.resolve().joinpath( 'templates', 'basic')
     if is_debug: console.log(str(template_path))
 
     if is_debug: console.log(project.__dict__)
@@ -188,9 +177,6 @@ def main():
     result = create_project(project.project_name, new_project_root)
     # deps = ["litestar", "advanced-alchemy", "ruff", "pytest", "structlog", "uvicorn"]
     # dependencies = add_dependencies(new_project_root, deps)
-
-
-    add_gitignore(new_project_root)
 
     copy_project(template_path=template_path, project_root=new_project_root, data=project)
     sync_project(project_root=new_project_root)

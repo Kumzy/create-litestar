@@ -8,17 +8,12 @@ It automatically:
 - Add configuration
 - Add .gitignore
 
+## Templates
+
+
 ## Development
 
 ```bash
 uv sync
-uv run ./src/main.py
+uv run create-litestar
 ```
-
-## Templates
-
-### Litestar
-
-
-
-## From scratch

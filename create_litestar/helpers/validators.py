@@ -1,5 +1,6 @@
 from questionary import Validator, ValidationError
 
+
 class NameValidator(Validator):
     def validate(self, document):
         if len(document.text) == 0:

@@ -6,6 +6,7 @@ from create_litestar.commands.web_server import WebServerEnum
 
 from create_litestar.helpers.constants import DEFAULT_PROJECT_DESCRIPTION
 
+
 class Project:
     project_name: str
     project_description: str = DEFAULT_PROJECT_DESCRIPTION
@@ -29,21 +30,21 @@ class Project:
     use_cors_csrf: bool = False
 
     def set_logging(self, logging: LoggingEnum | None):
-        if logging and logging  != LoggingEnum.NONE:
+        if logging and logging != LoggingEnum.NONE:
             self.use_logging = True
             self.logging = logging.value
         else:
             self.use_logging = False
 
     def set_orm(self, orm: OrmEnum | None):
-        if orm and orm  != OrmEnum.NONE:
+        if orm and orm != OrmEnum.NONE:
             self.use_orm = True
             self.orm = orm.value
         else:
             self.use_orm = False
 
     def set_openapi(self, openapi: OpenApiEnum | None):
-        if openapi and openapi  != OpenApiEnum.NONE:
+        if openapi and openapi != OpenApiEnum.NONE:
             self.use_openapi = True
             self.openapi = openapi.value
         else:

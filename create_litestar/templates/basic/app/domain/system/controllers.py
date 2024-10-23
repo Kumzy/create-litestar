@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import  Literal, TypeVar
+from typing import Literal, TypeVar
 
 import structlog
 from litestar import Controller, MediaType, Request, get
 from litestar.response import Response
-from sqlalchemy import text
 
 from app.config.settings import get_settings
 

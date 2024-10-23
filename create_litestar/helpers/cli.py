@@ -7,9 +7,10 @@ litestar_style = Style(
         ("question", ""),
         ("selected", "fg:#5F819D"),
         ("pointer", "fg:#FF9D00 bold"),
-        ('disabled', 'fg:#858585 italic')
+        ("disabled", "fg:#858585 italic"),
     ]
 )
+
 
 def get_qmark() -> str:
     return "✔"

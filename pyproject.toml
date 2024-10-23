@@ -15,6 +15,13 @@ dependencies = [
     "uvicorn>=0.32.0",
 ]
 
+[project.urls]
+Discord = "https://discord.gg/litestar"
+Funding = "https://github.com/sponsors/litestar-org"
+Homepage = "https://github.com/Kumzy/create-litestar"
+Issue = "https://github.com/Kumzy/create-litestar/issues/"
+Source = "https://github.com/Kumzy/create-litestar"
+
 [project.scripts]
 create-litestar = "create_litestar.__main__:main"
 

@@ -8,12 +8,14 @@ from create_litestar.model.project import Project
 def create_project(app: str, project_root: Path) -> bool:
     if os.path.exists(project_root):
         print("The directory already exists and is not empty")
+        return False
     try:
         os.mkdir(app)
     except Exception as e:
         print(f"An error occurred: {e}")
+        return False
 
-    return os.path.exists(os.path.join(app, "pyproject.toml"))
+    return os.path.exists(project_root)
 
     # decoded_stdout = stdout.decode("utf-8", errors="replace")
     # print(decoded_stdout)

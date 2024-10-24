@@ -14,16 +14,10 @@ class OpenApiEnum(StrEnum):
 
 openapi_choices: List[Union[Choice, Separator, str]] = [
     Choice(title="Scalar", value=OpenApiEnum.SCALAR),
-    Choice(title="RapiDoc", value=OpenApiEnum.RAPIDOC, disabled="Not implemented yet"),
-    Choice(
-        title="Swagger-UI", value=OpenApiEnum.SWAGGERUI, disabled="Not implemented yet"
-    ),
-    Choice(
-        title="Spotlight Elements",
-        value=OpenApiEnum.SPOTLIGHTELEMENTS,
-        disabled="Not implemented yet",
-    ),
-    Choice(title="Redoc", value=OpenApiEnum.REDOC, disabled="Not implemented yet"),
+    Choice(title="RapiDoc", value=OpenApiEnum.RAPIDOC),
+    Choice(title="Swagger-UI", value=OpenApiEnum.SWAGGERUI),
+    Choice(title="Spotlight Elements", value=OpenApiEnum.SPOTLIGHTELEMENTS),
+    Choice(title="Redoc", value=OpenApiEnum.REDOC),
     Separator(),
     Choice(title="None", value=OpenApiEnum.NONE),
 ]

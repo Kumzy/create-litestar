@@ -5,6 +5,14 @@ from litestar.openapi.config import OpenAPIConfig
 
 {%- if openapi == "scalar" %}
 from litestar.openapi.plugins import ScalarRenderPlugin
+{%- elif openapi == "rapid_doc" %}
+from litestar.openapi.plugins import RapidocRenderPlugin
+{%- elif openapi == "swagger_ui" %}
+from litestar.openapi.plugins import SwaggerRenderPlugin
+{%- elif openapi == "spotlight_elements" %}
+from litestar.openapi.plugins import StoplightRenderPlugin
+{%- elif openapi == "redoc" %}
+from litestar.openapi.plugins import RedocRenderPlugin
 {%- endif %}
 
 #from app.__metadata__ import __version__
@@ -23,6 +31,14 @@ openapi_config = OpenAPIConfig(
         ScalarRenderPlugin(
             version="latest",
         )
+        {%- elif openapi == "rapid_doc" %}
+        RapidocRenderPlugin()
+        {%- elif openapi == "swagger_ui" %}
+        SwaggerRenderPlugin()
+        {%- elif openapi == "spotlight_elements" %}
+        StoplightRenderPlugin()
+        {%- elif openapi == "redoc" %}
+        RedocRenderPlugin()
         {%- endif %}
     ],
 )

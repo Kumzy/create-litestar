@@ -3,7 +3,7 @@ name = "create-litestar"
 version = "0.1.0"
 description = "Easy way to start a Litestar project"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     "advanced-alchemy>=0.20.0",
     "copier>=9.3.1",

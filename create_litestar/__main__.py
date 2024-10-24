@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 import questionary
 from rich.console import Console
+from rich.style import Style
 
 from create_litestar.helpers.validators import NameValidator
 from create_litestar.helpers.project import (
@@ -21,7 +22,7 @@ from create_litestar.commands.openapi import openapi_choices
 from create_litestar.commands.plugins import plugin_choices
 
 from create_litestar.helpers.cli import litestar_style, get_qmark
-from create_litestar.helpers.constants import DEFAULT_PROJECT_NAME
+from create_litestar.helpers.constants import DEFAULT_PROJECT_NAME, LITESTAR_COLOR
 
 console = Console()
 
@@ -29,10 +30,12 @@ console = Console()
 def main():
     # To be replaced but quick
     is_debug = any(x in "--debug" for x in sys.argv)
+    litestar_console_style = Style(color=f"{LITESTAR_COLOR}", bold=True)
     project = Project()
     console.print()
     console.print(
-        "[yellow bold]Litestar - The powerful, lightweight and flexible ASGI framework"
+        "Litestar - The powerful, lightweight and flexible ASGI framework",
+        style=litestar_console_style
     )
     console.print()
 
@@ -227,8 +230,8 @@ def main():
     console.print()
     console.print("Done. Now run:")
     console.print()
-    console.print(f"[yellow bold]    cd {project.project_name}")
-    console.print("[yellow bold]    uv run app run")
+    console.print(f"    cd {project.project_name}", style=litestar_console_style)
+    console.print("    uv run app run", style=litestar_console_style)
     console.print()
 
 

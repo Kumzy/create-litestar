@@ -1,12 +1,13 @@
 from questionary import Style
+from create_litestar.helpers.constants import LITESTAR_COLOR
 
 litestar_style = Style(
     [
         ("separator", "fg:#6C6C6C"),
-        ("qmark", "fg:#FF9D00 bold"),
+        ("qmark", f"fg:{LITESTAR_COLOR} bold"),
         ("question", ""),
-        ("selected", "fg:#5F819D"),
-        ("pointer", "fg:#FF9D00 bold"),
+        ("selected", f"fg:{LITESTAR_COLOR}"),
+        ("pointer", f"fg:{LITESTAR_COLOR} bold"),
         ("disabled", "fg:#858585 italic"),
     ]
 )

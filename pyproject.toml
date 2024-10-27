@@ -28,20 +28,22 @@ create-litestar = "create_litestar.__main__:main"
 [tool.ruff]
 extend-exclude = ["src/templates/basic"]
 
-[tool.uv]
-dev-dependencies = [
-    # Autocomplete
-    "litestar>=2.12.1",
-    "structlog>=24.4.0",
-    # Linting and tests
-    "mypy>=1.12.0",
-    "pre-commit>=3.5.0",
-    "pyright>=1.1.385",
-    "pytest>=8.3.3",
-    "ruff>=0.6.8",
-    "slotscheck>=0.16.5",
-]
-
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
+
+[dependency-groups]
+test = [
+    "pytest>=8.3.3",
+]
+lint = [
+    "mypy>=1.12.0",
+    "pre-commit>=3.5.0",
+    "pyright>=1.1.385",
+    "ruff>=0.6.8",
+    "slotscheck>=0.16.5",
+]
+dev = [
+    "litestar>=2.12.1",
+    "structlog>=24.4.0",
+]

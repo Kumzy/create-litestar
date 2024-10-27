@@ -3,7 +3,7 @@
 Easy way to start a Litestar project
 
 <p align="center">
-  <img src="media/screenshot-cli.png" width="802">
+  <img src="media/screenshot-cli.png" width="1112">
 </p>
 
 It automatically:

@@ -1,238 +1,127 @@
+import argparse
 from pathlib import Path
-import sys
+
 import questionary
 from rich.console import Console
 from rich.style import Style
+from rich.table import Table
 
-from create_litestar.helpers.validators import NameValidator
-from create_litestar.helpers.project import (
-    create_project,
-    copy_project,
-    remove_files,
-    sync_project,
+from create_litestar.helpers.cli import get_qmark, litestar_style
+from create_litestar.helpers.constants import ARCHIVE_ROOT, LITESTAR_COLOR
+from create_litestar.helpers.errors import CreateLitestarError
+from create_litestar.helpers.project import ensure_available, extract_template, slugify
+from create_litestar.helpers.registry import (
+    Template,
+    download_archive,
+    fetch_templates,
+    find_template,
 )
-from create_litestar.model.project import Project
-
-from create_litestar.commands.logging import logging_choices
-from create_litestar.commands.template import template_choices, TemplateEnum
-from create_litestar.commands.orm import orm_choices
-from create_litestar.commands.object_type import object_type_choices
-from create_litestar.commands.web_server import web_server_choices
-from create_litestar.commands.openapi import openapi_choices
-from create_litestar.commands.plugins import plugin_choices
-
-from create_litestar.helpers.cli import litestar_style, get_qmark
-from create_litestar.helpers.constants import DEFAULT_PROJECT_NAME, LITESTAR_COLOR
+from create_litestar.helpers.validators import NameValidator
 
 console = Console()
+console_style = Style(color=LITESTAR_COLOR, bold=True)
 
 
-def main():
-    # To be replaced but quick
-    is_debug = any(x in "--debug" for x in sys.argv)
-    litestar_console_style = Style(color=f"{LITESTAR_COLOR}", bold=True)
-    project = Project()
-    console.print()
-    console.print(
-        "Litestar - The powerful, lightweight and flexible ASGI framework",
-        style=litestar_console_style
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="create-litestar", description="Create a new Litestar project"
     )
-    console.print()
+    parser.add_argument("name", nargs="?", help="Name of the new project")
+    parser.add_argument("-t", "--template", help="Template to scaffold from")
+    parser.add_argument(
+        "--list", action="store_true", help="List the available templates and exit"
+    )
+    return parser.parse_args(argv)
 
-    """Project name"""
-    project.project_name = questionary.text(
+
+def templates_table(templates: tuple[Template, ...]) -> Table:
+    table = Table(title="Litestar templates")
+    table.add_column("Name", style="bright_blue", no_wrap=True)
+    table.add_column("Description")
+    for template in templates:
+        table.add_row(template.name, template.description)
+    return table
+
+
+def select_template(templates: tuple[Template, ...]) -> Template:
+    answer = questionary.select(
+        message="Template:",
+        choices=[
+            questionary.Choice(title=f"{t.name} - {t.description}", value=t)
+            for t in templates
+        ],
+        qmark=get_qmark(),
+        style=litestar_style,
+    ).ask()
+    if answer is None:
+        raise SystemExit(1)
+    return answer
+
+
+def ask_project_name(template: Template) -> str:
+    answer = questionary.text(
         message="Project name:",
         qmark=get_qmark(),
         style=litestar_style,
-        default=DEFAULT_PROJECT_NAME,
+        default=template.name,
         validate=NameValidator,
     ).ask()
+    if answer is None:
+        raise SystemExit(1)
+    return answer
 
-    if project.project_name is None:
-        exit(1)
 
-    """Template"""
-    selected_template = questionary.select(
-        message="Create from a template?",
-        qmark=get_qmark(),
-        choices=template_choices,
-        style=litestar_style,
-    ).ask()
-
-    if selected_template is None:
-        exit(1)
-
-    USE_TEMPLATE = True
-    if selected_template == TemplateEnum.NONE:
-        USE_TEMPLATE = False
-
-    """Logging"""
-    selected_logging = (
-        questionary.select(
-            message="Add logging?",
-            qmark=get_qmark(),
-            choices=logging_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_logging is None:
-        exit(1)
-
-    project.set_logging(selected_logging)
-
-    """ORM"""
-    selected_orm = (
-        questionary.select(
-            message="Add ORM?",
-            qmark=get_qmark(),
-            choices=orm_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_orm is None:
-        exit(1)
-
-    project.set_orm(selected_orm)
-
-    """Objects"""
-    selected_object = (
-        questionary.select(
-            message="Select object type",
-            qmark=get_qmark(),
-            choices=object_type_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_object is None:
-        exit(1)
-
-    project.set_object_type(selected_object)
-
-    """Web server"""
-    selected_web_server = (
-        questionary.select(
-            message="Add web server?",
-            qmark=get_qmark(),
-            choices=web_server_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_web_server is None:
-        exit(1)
-
-    project.set_web_server(selected_web_server)
-
-    """Test"""
-    selected_test = (
-        questionary.confirm(
-            message="Add pytest for unit tests?",
-            qmark=get_qmark(),
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_test is None:
-        exit(1)
-
-    project.use_test = bool(selected_test)
-
-    """CORS/CSRF"""
-    selected_cors_csrf = (
-        questionary.confirm(
-            message="Add CORS/CSRF?",
-            qmark=get_qmark(),
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_cors_csrf is None:
-        exit(1)
-
-    project.use_cors_csrf = bool(selected_cors_csrf)
-
-    """Automatic schema documentation"""
-    selected_openapi_schema = (
-        questionary.select(
-            message="Add automatic schema documentation?",
-            qmark=get_qmark(),
-            choices=openapi_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_openapi_schema is None:
-        exit(1)
-
-    project.set_openapi(selected_openapi_schema)
-
-    """Plugins"""
-    selected_plugins = (
-        questionary.checkbox(
-            message="Add plugins?",
-            qmark=get_qmark(),
-            choices=plugin_choices,
-            style=litestar_style,
-        )
-        .skip_if(USE_TEMPLATE)
-        .ask()
-    )
-
-    if selected_plugins is None:
-        exit(1)
-
-    new_project_root = Path.cwd().joinpath(project.project_name)
-
-    print()
-    print(f"Scaffolding project in in {new_project_root}")
-
-    if is_debug:
-        console.log(str(new_project_root))
-    template_path = Path(__file__).parent.resolve().joinpath("templates", "basic")
-    if is_debug:
-        console.log(str(template_path))
-
-    if is_debug:
-        console.log(project.__dict__)
-
-    # if not os.path.exists(new_project_root):
-    #     os.makedirs(new_project_root)
-    #
-    # os.chdir(new_project_root)
-
-    result = create_project(project.project_name, new_project_root)
-    if not result:
-        exit(1)
-
-    copy_project(
-        template_path=template_path, project_root=new_project_root, data=project
-    )
-    sync_project(project_root=new_project_root)
-    remove_files(new_project_root)
-
+def print_banner() -> None:
     console.print()
-    console.print("Done. Now run:")
+    console.print(
+        "Litestar - The powerful, lightweight and flexible ASGI framework",
+        style=console_style,
+    )
     console.print()
-    console.print(f"    cd {project.project_name}", style=litestar_console_style)
-    console.print("    uv run app run", style=litestar_console_style)
-    console.print()
+
+
+def print_next_steps(target: Path) -> None:
+    console.print(f"\n[green]Created {target.name}[/]\n")
+    console.print(f"  cd {target.name}", style=console_style)
+    console.print(
+        r"  uv sync  [dim]# or: python -m venv .venv && .venv/bin/pip install -e .[/]"
+    )
+    console.print("  uv run litestar run --reload")
+    console.print(
+        f"\n[dim]See {target.name}/README.md for template-specific instructions.[/]"
+    )
+
+
+def run(args: argparse.Namespace) -> None:
+    templates = fetch_templates()
+
+    if args.list:
+        console.print(templates_table(templates))
+        return
+
+    template = (
+        find_template(templates, args.template)
+        if args.template
+        else select_template(templates)
+    )
+    name = args.name or ask_project_name(template)
+    target = Path.cwd() / slugify(name)
+    ensure_available(target)
+    extract_template(
+        download_archive(), f"{ARCHIVE_ROOT}/{template.directory}/", target
+    )
+    print_next_steps(target)
+
+
+def main() -> None:
+    args = parse_args()
+    if not args.list:
+        print_banner()
+    try:
+        run(args)
+    except CreateLitestarError as e:
+        console.print(f"[red]{e}[/]")
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

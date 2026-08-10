@@ -1,100 +1,57 @@
-import os
-import subprocess
+import io
+import re
+import shutil
+import tarfile
+import tempfile
 from pathlib import Path
-from copier import run_copy
-from create_litestar.model.project import Project
+
+from create_litestar.helpers.errors import CreateLitestarError
 
 
-def create_project(app: str, project_root: Path) -> bool:
-    if os.path.exists(project_root):
-        print("The directory already exists and is not empty")
-        return False
+def slugify(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9.-]+", "-", value.strip().lower()).strip("-.")
+    if not slug:
+        raise CreateLitestarError(f"{value!r} cannot be used as a project name")
+    return slug
+
+
+def ensure_available(target: Path) -> None:
+    if not target.exists():
+        return
+    if target.is_file() or any(target.iterdir()):
+        raise CreateLitestarError(f"{target} already exists and is not empty")
+
+
+def strip_prefix(archive: tarfile.TarFile, prefix: str) -> list[tarfile.TarInfo]:
+    members = []
+    for member in archive.getmembers():
+        if not member.name.startswith(prefix):
+            continue
+        member.name = member.name[len(prefix) :]
+        if member.name:
+            members.append(member)
+    return members
+
+
+def move_into(source: Path, target: Path) -> None:
+    target.mkdir(parents=True, exist_ok=True)
+    for entry in source.iterdir():
+        shutil.move(str(entry), str(target / entry.name))
+
+
+def extract_template(payload: bytes, prefix: str, target: Path) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(dir=target.parent))
     try:
-        os.mkdir(app)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return False
-
-    return os.path.exists(project_root)
-
-    # decoded_stdout = stdout.decode("utf-8", errors="replace")
-    # print(decoded_stdout)
-    # try:
-    #     process = subprocess.run(
-    #         args,
-    #         cwd=project_root,
-    #         check=True
-    #     )
-    # except CalledProcessError:
-    #     raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
-    #
-    # if process.returncode != 0:
-    #     raise Exception(f"Error initializing project: {process.stderr.decode('utf-8')}")
-    #
-    # return os.path.exists(os.path.join(app, "pyproject.toml"))
-
-
-def add_dependencies(project_root: Path, dependencies: list[str], dev: bool = False):
-    """Add selected dependencies"""
-    args = ["uv", "add"]
-    args.extend(dependencies)
-
-    if dev:
-        args.append("--dev")
-
-    # Run the installation process
-    process = subprocess.Popen(
-        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    stdout, stderr = process.communicate()
-
-    if process.returncode != 0:
-        raise Exception(f"Error installing dependencies: {stderr.decode('utf-8')}")
-
-    decoded_stdout = stdout.decode("utf-8", errors="replace")
-    print(decoded_stdout)
-
-
-def copy_project(template_path: Path, project_root: Path, data: Project) -> bool:
-    # Run copier
-    run_copy(
-        src_path=str(template_path),
-        dst_path=project_root,
-        data=data.__dict__,
-        cleanup_on_error=True,
-        quiet=True,
-    )
-
-
-def sync_project(project_root: Path):
-    """Run uv sync to create the venv directory"""
-    args = ["uv", "sync", "--quiet"]
-
-    # Run the installation process
-    process = subprocess.Popen(
-        args, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    stdout, stderr = process.communicate()
-
-    if process.returncode != 0:
-        raise Exception(f"Error installing venv: {stderr.decode('utf-8')}")
-
-    decoded_stdout = stdout.decode("utf-8", errors="replace")
-    print(decoded_stdout)
-
-
-def remove_files(project_root: Path):
-    # Remove files, especially unwanted files created by `uv init`
-    files = ["hello.py"]
-
-    for file in files:
-        try:
-            if os.path.exists(project_root.joinpath(file)):
-                os.remove(project_root.joinpath(file))
-                print(f"File {file} has been removed successfully")
-        except FileNotFoundError:
-            print(f"File {file} does not exist")
-        except PermissionError:
-            print(f"Permission denied: unable to delete {file}")
-        except Exception as e:
-            print(f"An error occurred while trying to delete {file}: {e}")
+        with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+            members = strip_prefix(archive, prefix)
+            if not members:
+                raise CreateLitestarError(
+                    f"the template archive contains no files under {prefix!r}"
+                )
+            archive.extractall(path=staging, members=members, filter="data")
+        move_into(staging, target)
+    except tarfile.TarError as e:
+        raise CreateLitestarError(f"could not extract the template archive: {e}") from e
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)

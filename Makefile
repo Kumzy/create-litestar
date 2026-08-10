@@ -26,7 +26,7 @@ install: clean ## Install the project, dependencies, and pre-commit for local de
 	@echo "=> Install complete!"
 
 clean:  ## Remove generated project files
-	@rm -rf .venv/ .*_cache/ .coverage  *.egg-info/ docs/_build
+	@rm -rf .venv/ .*_cache/ .coverage  *.egg-info/
 
 .PHONY: destroy
 destroy: ## Destroy the virtual environment

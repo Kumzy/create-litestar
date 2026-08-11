@@ -2,6 +2,7 @@ import io
 import json
 import tarfile
 import urllib.error
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -63,16 +64,41 @@ DEFAULT_ARCHIVE = build_archive(
 )
 
 
+# The genuine fetcher, captured before any fixture patches it.
+REAL_GET = registry.get
+
+ServeFn = Callable[..., None]
+
+
 @pytest.fixture(autouse=True)
-def fake_registry(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Serve the manifest and archive from memory so no test touches the network."""
+def serve(monkeypatch: pytest.MonkeyPatch) -> ServeFn:
+    """Serve the manifest and archive from memory so no test touches the network.
 
-    def fake_get(url: str) -> bytes:
-        if url.endswith("templates.json"):
-            return json.dumps(MANIFEST).encode()
-        return DEFAULT_ARCHIVE
+    Applied everywhere with the default payloads; a test re-invokes it to serve
+    variants: serve(manifest=...), serve(archive=...).
+    """
 
-    monkeypatch.setattr(registry, "get", fake_get)
+    def _serve(
+        manifest: dict[str, Any] | bytes = MANIFEST,
+        archive: bytes = DEFAULT_ARCHIVE,
+    ) -> None:
+        payload = (
+            manifest if isinstance(manifest, bytes) else json.dumps(manifest).encode()
+        )
+        monkeypatch.setattr(
+            registry,
+            "get",
+            lambda url: payload if url.endswith("templates.json") else archive,
+        )
+
+    _serve()
+    return _serve
+
+
+@pytest.fixture
+def real_get(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Precisely undo the serve fixture: restore the real registry.get."""
+    monkeypatch.setattr(registry, "get", REAL_GET)
 
 
 @pytest.fixture(autouse=True)
@@ -174,17 +200,11 @@ def test_existing_empty_target_is_allowed(workdir: Path) -> None:
     assert (workdir / "empty" / "README.md").is_file()
 
 
-def test_path_traversal_member_is_rejected(
-    workdir: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    malicious = build_archive(
-        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
-    )
-    monkeypatch.setattr(
-        registry,
-        "get",
-        lambda url: json.dumps(MANIFEST).encode() if "json" in url else malicious,
+def test_path_traversal_member_is_rejected(workdir: Path, serve: ServeFn) -> None:
+    serve(
+        archive=build_archive(
+            [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
+        )
     )
 
     with pytest.raises(LitestarCreateError):
@@ -196,15 +216,12 @@ def test_path_traversal_member_is_rejected(
 
 def test_partial_extraction_leaves_no_temporary_files(
     workdir: Path,
-    monkeypatch: pytest.MonkeyPatch,
+    serve: ServeFn,
 ) -> None:
-    malicious = build_archive(
-        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
-    )
-    monkeypatch.setattr(
-        registry,
-        "get",
-        lambda url: json.dumps(MANIFEST).encode() if "json" in url else malicious,
+    serve(
+        archive=build_archive(
+            [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
+        )
     )
 
     with pytest.raises(LitestarCreateError):
@@ -215,14 +232,9 @@ def test_partial_extraction_leaves_no_temporary_files(
 
 def test_template_without_matching_archive_directory(
     workdir: Path,
-    monkeypatch: pytest.MonkeyPatch,
+    serve: ServeFn,
 ) -> None:
-    empty = build_archive([f"{ARCHIVE_ROOT}/README.md"])
-    monkeypatch.setattr(
-        registry,
-        "get",
-        lambda url: json.dumps(MANIFEST).encode() if "json" in url else empty,
-    )
+    serve(archive=build_archive([f"{ARCHIVE_ROOT}/README.md"]))
 
     with pytest.raises(LitestarCreateError):
         invoke("out", "--template", "api")
@@ -230,9 +242,9 @@ def test_template_without_matching_archive_directory(
     assert not (workdir / "out").exists()
 
 
-def test_network_failure_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.undo()  # drop the fake registry so the real urlopen path runs
-
+def test_network_failure_is_friendly(
+    real_get: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     def boom(*args: Any, **kwargs: Any) -> None:
         raise urllib.error.URLError("Name or service not known")
 
@@ -242,9 +254,9 @@ def test_network_failure_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
         registry.fetch_templates()
 
 
-def test_http_error_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.undo()  # drop the fake registry so the real urlopen path runs
-
+def test_http_error_is_friendly(
+    real_get: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     def not_found(*args: Any, **kwargs: Any) -> None:
         raise urllib.error.HTTPError("https://example.com", 404, "Not Found", {}, None)  # type: ignore[arg-type]
 
@@ -254,8 +266,8 @@ def test_http_error_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
         registry.fetch_templates()
 
 
-def test_malformed_manifest_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(registry, "get", lambda url: b"<html>not json</html>")
+def test_malformed_manifest_is_friendly(serve: ServeFn) -> None:
+    serve(manifest=b"<html>not json</html>")
 
     with pytest.raises(LitestarCreateError, match="could not read"):
         registry.fetch_templates()
@@ -294,12 +306,8 @@ def test_template_parses_optional_and_unused_fields() -> None:
     assert not hasattr(by_name["api"], "tags")
 
 
-def test_registry_entry_missing_required_field(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        registry,
-        "get",
-        lambda url: json.dumps({"templates": [{"name": "broken"}]}).encode(),
-    )
+def test_registry_entry_missing_required_field(serve: ServeFn) -> None:
+    serve(manifest={"templates": [{"name": "broken"}]})
 
     with pytest.raises(LitestarCreateError, match="directory"):
         registry.fetch_templates()
@@ -368,17 +376,13 @@ def test_cancelling_the_name_prompt_exits_cleanly(
     assert not any(workdir.iterdir())
 
 
-def test_non_https_urls_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.undo()  # drop the fake registry so the real get() runs
-
+def test_non_https_urls_are_refused(real_get: None) -> None:
     with pytest.raises(LitestarCreateError, match="non-HTTPS"):
         registry.get("http://raw.githubusercontent.com/templates.json")
 
 
-def test_empty_registry_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        registry, "get", lambda url: json.dumps({"templates": []}).encode()
-    )
+def test_empty_registry_is_an_error(serve: ServeFn) -> None:
+    serve(manifest={"templates": []})
 
     with pytest.raises(LitestarCreateError, match="empty"):
         registry.fetch_templates()

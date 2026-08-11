@@ -38,6 +38,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --all-groups
+      - name: Verify the venv runs the matrix Python, not .python-version
+        run: |
+          uv run python -c "
+          import sys
+          expected = '${{ matrix.python-version }}'
+          actual = f'{sys.version_info.major}.{sys.version_info.minor}'
+          assert actual == expected, f'venv runs {actual}, matrix expected {expected}'
+          "
       - run: uv run pytest --cov
 
   # Single required check for branch protection: green only when lint and

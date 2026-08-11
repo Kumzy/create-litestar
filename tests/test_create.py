@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from prompt_toolkit.document import Document
 from questionary import ValidationError
 
 from litestar_create import __main__ as cli
@@ -383,15 +384,10 @@ def test_empty_registry_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
         registry.fetch_templates()
 
 
-class FakeDocument:
-    def __init__(self, text: str) -> None:
-        self.text = text
-
-
 def test_name_validator_rejects_empty_input() -> None:
     with pytest.raises(ValidationError):
-        NameValidator().validate(FakeDocument(""))
+        NameValidator().validate(Document(""))
 
 
 def test_name_validator_accepts_text() -> None:
-    NameValidator().validate(FakeDocument("my-app"))
+    NameValidator().validate(Document("my-app"))

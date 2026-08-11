@@ -2,11 +2,16 @@ import argparse
 from pathlib import Path
 
 import questionary
-from rich.console import Console
-from rich.style import Style
-from rich.table import Table
 
-from litestar_create.helpers.cli import get_qmark, litestar_style
+from litestar_create.helpers.cli import (
+    DIM,
+    GOLD,
+    GREEN,
+    RED,
+    echo,
+    get_qmark,
+    litestar_style,
+)
 from litestar_create.helpers.constants import ARCHIVE_ROOT, LITESTAR_COLOR
 from litestar_create.helpers.errors import LitestarCreateError
 from litestar_create.helpers.project import ensure_available, extract_template, slugify
@@ -17,9 +22,6 @@ from litestar_create.helpers.registry import (
     find_template,
 )
 from litestar_create.helpers.validators import NameValidator
-
-console = Console()
-console_style = Style(color=LITESTAR_COLOR, bold=True)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -37,13 +39,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def templates_table(templates: tuple[Template, ...]) -> Table:
-    table = Table(title="Litestar templates")
-    table.add_column("Name", style="bright_blue", no_wrap=True)
-    table.add_column("Description")
+def print_templates(templates: tuple[Template, ...]) -> None:
+    width = max(len(template.name) for template in templates)
+    echo((GOLD, "Litestar templates"))
+    echo()
     for template in templates:
-        table.add_row(template.name, template.description)
-    return table
+        echo(
+            (f"fg:{LITESTAR_COLOR}", f"  {template.name:<{width}}  "),
+            ("", template.description),
+        )
 
 
 def select_template(templates: tuple[Template, ...]) -> Template:
@@ -75,31 +79,30 @@ def ask_project_name(template: Template) -> str:
 
 
 def print_banner() -> None:
-    console.print()
-    console.print(
-        "Litestar - The powerful, lightweight and flexible ASGI framework",
-        style=console_style,
-    )
-    console.print()
+    echo()
+    echo((GOLD, "Litestar - The powerful, lightweight and flexible ASGI framework"))
+    echo()
 
 
 def print_next_steps(target: Path) -> None:
-    console.print(f"\n[green]Created {target.name}[/]\n")
-    console.print(f"  cd {target.name}", style=console_style)
-    console.print(
-        r"  uv sync  [dim]# or: python -m venv .venv && .venv/bin/pip install -e .[/]",
+    echo()
+    echo((GREEN, f"Created {target.name}"))
+    echo()
+    echo((GOLD, f"  cd {target.name}"))
+    echo(
+        ("", "  uv sync  "),
+        (DIM, "# or: python -m venv .venv && .venv/bin/pip install -e ."),
     )
-    console.print("  uv run litestar run --reload")
-    console.print(
-        f"\n[dim]See {target.name}/README.md for template-specific instructions.[/]",
-    )
+    echo(("", "  uv run litestar run --reload"))
+    echo()
+    echo((DIM, f"See {target.name}/README.md for template-specific instructions."))
 
 
 def run(args: argparse.Namespace) -> None:
     templates = fetch_templates()
 
     if args.list:
-        console.print(templates_table(templates))
+        print_templates(templates)
         return
 
     template = (
@@ -125,7 +128,7 @@ def main() -> None:
     try:
         run(args)
     except LitestarCreateError as e:
-        console.print(f"[red]{e}[/]")
+        echo((RED, str(e)))
         raise SystemExit(1) from e
 
 

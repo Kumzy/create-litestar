@@ -24,12 +24,15 @@ console_style = Style(color=LITESTAR_COLOR, bold=True)
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="litestar-create", description="Create a new Litestar project"
+        prog="litestar-create",
+        description="Create a new Litestar project",
     )
     parser.add_argument("name", nargs="?", help="Name of the new project")
     parser.add_argument("-t", "--template", help="Template to scaffold from")
     parser.add_argument(
-        "--list", action="store_true", help="List the available templates and exit"
+        "--list",
+        action="store_true",
+        help="List the available templates and exit",
     )
     return parser.parse_args(argv)
 
@@ -84,11 +87,11 @@ def print_next_steps(target: Path) -> None:
     console.print(f"\n[green]Created {target.name}[/]\n")
     console.print(f"  cd {target.name}", style=console_style)
     console.print(
-        r"  uv sync  [dim]# or: python -m venv .venv && .venv/bin/pip install -e .[/]"
+        r"  uv sync  [dim]# or: python -m venv .venv && .venv/bin/pip install -e .[/]",
     )
     console.print("  uv run litestar run --reload")
     console.print(
-        f"\n[dim]See {target.name}/README.md for template-specific instructions.[/]"
+        f"\n[dim]See {target.name}/README.md for template-specific instructions.[/]",
     )
 
 
@@ -108,7 +111,9 @@ def run(args: argparse.Namespace) -> None:
     target = Path.cwd() / slugify(name)
     ensure_available(target)
     extract_template(
-        download_archive(), f"{ARCHIVE_ROOT}/{template.directory}/", target
+        download_archive(),
+        f"{ARCHIVE_ROOT}/{template.directory}/",
+        target,
     )
     print_next_steps(target)
 

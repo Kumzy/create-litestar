@@ -10,7 +10,7 @@ upgrade: ## Upgrade all dependencies to the latest stable versions
 	@echo "=> Updating all dependencies"
 	@uv lock --upgrade
 	@echo "=> Dependencies Updated"
-	@uv run pre-commit autoupdate
+	@uv run prek autoupdate
 	@echo "=> Updated Pre-commit"
 
 # =============================================================================
@@ -21,7 +21,7 @@ install-uv: ## Install latest version of uv
 	@curl -LsSf https://astral.sh/uv/install.sh | sh
 
 .PHONY: install
-install: clean ## Install the project, dependencies, and pre-commit for local development
+install: clean ## Install the project, dependencies, and prek for local development
 	@uv sync --all-extras --dev
 	@echo "=> Install complete!"
 
@@ -60,10 +60,10 @@ pyright: ## Run pyright
 .PHONY: type-check
 type-check: mypy pyright ## Run all type checking
 
-.PHONY: pre-commit
-pre-commit: ## Runs pre-commit hooks; includes ruff formatting and linting, codespell
-	@echo "=> Running pre-commit process"
-	@uv run pre-commit run --all-files
+.PHONY: prek
+prek: ## Runs prek hooks; includes ruff formatting and linting, codespell
+	@echo "=> Running prek process"
+	@uv run prek run --all-files
 	@echo "=> Pre-commit complete"
 
 .PHONY: slotscheck
@@ -73,7 +73,7 @@ slotscheck: ## Run slotscheck
 	@echo "=> slotscheck complete"
 
 .PHONY: lint
-lint: pre-commit type-check slotscheck ## Run all linting
+lint: prek type-check slotscheck ## Run all linting
 
 .PHONY: coverage
 coverage: ## Run the tests and generate coverage report

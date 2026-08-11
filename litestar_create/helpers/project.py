@@ -47,7 +47,7 @@ def extract_template(payload: bytes, prefix: str, target: Path) -> None:
             members = strip_prefix(archive, prefix)
             if not members:
                 raise LitestarCreateError(
-                    f"the template archive contains no files under {prefix!r}"
+                    f"the template archive contains no files under {prefix!r}",
                 )
             archive.extractall(path=staging, members=members, filter="data")
         move_into(staging, target)

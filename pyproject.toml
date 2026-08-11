@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "questionary>=2.1.1",
-    "rich>=14.1.0",
+    "rich>=15.0.0",
 ]
 
 [project.urls]
@@ -19,18 +19,22 @@ Source = "https://github.com/Kumzy/litestar-create"
 [project.scripts]
 litestar-create = "litestar_create.__main__:main"
 
+[tool.ruff]
+# An empty section keeps ruff's config discovery inside this repo; without it,
+# ruff walks up and picks whatever pyproject.toml it finds in parent folders.
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [dependency-groups]
 test = [
-    "pytest>=8.3.3",
+    "pytest>=9.1.1",
 ]
 lint = [
-    "mypy>=1.12.0",
-    "pre-commit>=3.5.0",
-    "pyright>=1.1.385",
-    "ruff>=0.6.8",
-    "slotscheck>=0.16.5",
+    "mypy>=2.3.0",
+    "prek>=0.4.13",
+    "pyright>=1.1.411",
+    "ruff>=0.16.2",
+    "slotscheck>=0.20.1",
 ]

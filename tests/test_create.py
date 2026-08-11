@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from litestar_create import __main__ as cli
 from litestar_create.helpers import project, registry
 from litestar_create.helpers.constants import ARCHIVE_ROOT
@@ -56,7 +55,7 @@ DEFAULT_ARCHIVE = build_archive(
         f"{ARCHIVE_ROOT}/minimal/README.md",
         f"{ARCHIVE_ROOT}/README.md",
         f"{ARCHIVE_ROOT}/templates.json",
-    ]
+    ],
 )
 
 
@@ -130,7 +129,8 @@ def test_project_name_is_slugified(workdir: Path) -> None:
 
 
 def test_scaffold_prints_next_steps(
-    workdir: Path, capsys: pytest.CaptureFixture[str]
+    workdir: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     invoke("my-api", "--template", "api")
 
@@ -171,10 +171,11 @@ def test_existing_empty_target_is_allowed(workdir: Path) -> None:
 
 
 def test_path_traversal_member_is_rejected(
-    workdir: Path, monkeypatch: pytest.MonkeyPatch
+    workdir: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     malicious = build_archive(
-        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"]
+        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
     )
     monkeypatch.setattr(
         registry,
@@ -190,10 +191,11 @@ def test_path_traversal_member_is_rejected(
 
 
 def test_partial_extraction_leaves_no_temporary_files(
-    workdir: Path, monkeypatch: pytest.MonkeyPatch
+    workdir: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     malicious = build_archive(
-        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"]
+        [f"{ARCHIVE_ROOT}/api/ok.txt", f"{ARCHIVE_ROOT}/api/../../evil.txt"],
     )
     monkeypatch.setattr(
         registry,
@@ -208,7 +210,8 @@ def test_partial_extraction_leaves_no_temporary_files(
 
 
 def test_template_without_matching_archive_directory(
-    workdir: Path, monkeypatch: pytest.MonkeyPatch
+    workdir: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     empty = build_archive([f"{ARCHIVE_ROOT}/README.md"])
     monkeypatch.setattr(
@@ -264,7 +267,8 @@ def test_main_turns_errors_into_exit_code(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_interactive_prompts_drive_the_scaffold(
-    workdir: Path, monkeypatch: pytest.MonkeyPatch
+    workdir: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     templates = registry.fetch_templates()
     monkeypatch.setattr(cli, "select_template", lambda _: templates[1])

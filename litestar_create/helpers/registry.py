@@ -1,9 +1,10 @@
 import json
 import urllib.error
 import urllib.request
+from collections.abc import Sequence
 from dataclasses import dataclass
 from difflib import get_close_matches
-from typing import Any, Sequence
+from typing import Any
 
 from litestar_create.helpers.constants import MANIFEST_URL, REQUEST_TIMEOUT, TARBALL_URL
 from litestar_create.helpers.errors import LitestarCreateError
@@ -26,11 +27,11 @@ def get(url: str) -> bytes:
             return bytes(response.read())
     except urllib.error.HTTPError as e:
         raise LitestarCreateError(
-            f"could not fetch {url}: the server responded with {e.code} {e.reason}"
+            f"could not fetch {url}: the server responded with {e.code} {e.reason}",
         ) from e
     except (urllib.error.URLError, OSError) as e:
         raise LitestarCreateError(
-            f"could not fetch {url}: {e}. Check your network connection"
+            f"could not fetch {url}: {e}. Check your network connection",
         ) from e
 
 
@@ -45,7 +46,7 @@ def parse_template(entry: dict[str, Any]) -> Template:
         )
     except (KeyError, TypeError) as e:
         raise LitestarCreateError(
-            f"template registry entry is missing the {e} field"
+            f"template registry entry is missing the {e} field",
         ) from e
 
 
@@ -55,13 +56,13 @@ def fetch_templates() -> tuple[Template, ...]:
         entries = json.loads(payload)["templates"]
     except (json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError) as e:
         raise LitestarCreateError(
-            f"could not read the template registry at {MANIFEST_URL}: {e}"
+            f"could not read the template registry at {MANIFEST_URL}: {e}",
         ) from e
     templates = tuple(parse_template(entry) for entry in entries)
     if not templates:
         raise LitestarCreateError(f"the template registry at {MANIFEST_URL} is empty")
     return tuple(
-        sorted(templates, key=lambda template: (not template.featured, template.name))
+        sorted(templates, key=lambda template: (not template.featured, template.name)),
     )
 
 
@@ -70,11 +71,14 @@ def find_template(templates: Sequence[Template], name: str) -> Template:
         if template.name == name:
             return template
     matches = get_close_matches(
-        name, [template.name for template in templates], n=3, cutoff=0.5
+        name,
+        [template.name for template in templates],
+        n=3,
+        cutoff=0.5,
     )
     hint = f" Did you mean: {', '.join(matches)}?" if matches else ""
     raise LitestarCreateError(
-        f"unknown template {name!r}.{hint} Run 'litestar-create --list' to see every template"
+        f"unknown template {name!r}.{hint} Run 'litestar-create --list' to see every template",
     )
 
 

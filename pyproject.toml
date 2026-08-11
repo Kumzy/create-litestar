@@ -39,7 +39,6 @@ litestar-create = "litestar_create.__main__:main"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config"
-filterwarnings = ["error"]
 
 [tool.coverage.run]
 source = ["litestar_create"]

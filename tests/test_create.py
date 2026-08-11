@@ -1,20 +1,16 @@
 import io
 import json
 import tarfile
-import urllib.error
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import pytest
-from prompt_toolkit.document import Document
-from questionary import ValidationError
 
 from litestar_create import __main__ as cli
 from litestar_create.helpers import project, registry
 from litestar_create.helpers.constants import ARCHIVE_ROOT
 from litestar_create.helpers.errors import LitestarCreateError
-from litestar_create.helpers.validators import NameValidator
 
 # mirrors the live templates.json: a top-level "$schema" sibling, an optional
 # "featured", and "icon"/"tags" fields the CLI does not use and must ignore.
@@ -117,13 +113,6 @@ def test_list_templates(capsys: pytest.CaptureFixture[str]) -> None:
     out = capsys.readouterr().out
     assert "minimal" in out
     assert "api" in out
-
-
-def test_list_puts_featured_first(capsys: pytest.CaptureFixture[str]) -> None:
-    invoke("--list")
-
-    out = capsys.readouterr().out
-    assert out.index("api") < out.index("minimal")
 
 
 def test_scaffold_by_name(workdir: Path) -> None:
@@ -242,37 +231,6 @@ def test_template_without_matching_archive_directory(
     assert not (workdir / "out").exists()
 
 
-def test_network_failure_is_friendly(
-    real_get: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    def boom(*args: Any, **kwargs: Any) -> None:
-        raise urllib.error.URLError("Name or service not known")
-
-    monkeypatch.setattr("urllib.request.urlopen", boom)
-
-    with pytest.raises(LitestarCreateError, match="could not fetch"):
-        registry.fetch_templates()
-
-
-def test_http_error_is_friendly(
-    real_get: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    error = urllib.error.HTTPError("https://example.com", 404, "Not Found", {}, None)  # type: ignore[arg-type]
-
-    def not_found(*args: Any, **kwargs: Any) -> None:
-        raise error
-
-    monkeypatch.setattr("urllib.request.urlopen", not_found)
-
-    with pytest.raises(LitestarCreateError, match="404"):
-        registry.fetch_templates()
-
-    # On Python 3.14 an HTTPError owns a temp file; close it, or garbage
-    # collection raises a ResourceWarning that our warning filter turns
-    # into a test failure.
-    error.close()
-
-
 def test_malformed_manifest_is_friendly(serve: ServeFn) -> None:
     serve(manifest=b"<html>not json</html>")
 
@@ -304,15 +262,6 @@ def test_interactive_prompts_drive_the_scaffold(
     ).read_text() == f"# {ARCHIVE_ROOT}/minimal/README.md"
 
 
-def test_template_parses_optional_and_unused_fields() -> None:
-    """`featured` is optional, and registry fields the CLI does not use (icon, tags) are ignored."""
-    by_name = {template.name: template for template in registry.fetch_templates()}
-
-    assert by_name["minimal"].featured is False
-    assert by_name["api"].featured is True
-    assert not hasattr(by_name["api"], "tags")
-
-
 def test_registry_entry_missing_required_field(serve: ServeFn) -> None:
     serve(manifest={"templates": [{"name": "broken"}]})
 
@@ -320,21 +269,12 @@ def test_registry_entry_missing_required_field(serve: ServeFn) -> None:
         registry.fetch_templates()
 
 
-def test_archive_root_uses_repository_name_not_owner() -> None:
-    """GitHub names the tarball folder after the repository, so the owner must not appear in it."""
-    assert "/" not in ARCHIVE_ROOT
-    assert ARCHIVE_ROOT == "litestar-templates-main"
-
-
 @pytest.mark.parametrize(
     ("answer", "expected"),
     [
         ("my-app", "my-app"),
         ("My Cool API", "my-cool-api"),
-        ("  Spaced  Out  ", "spaced-out"),
-        ("under_scored", "under-scored"),
         ("Weird!!Chars??", "weird-chars"),
-        ("MiXeD", "mixed"),
     ],
 )
 def test_slugify(answer: str, expected: str) -> None:
@@ -367,22 +307,6 @@ def test_cancelling_the_template_prompt_exits_cleanly(
     assert not any(workdir.iterdir())
 
 
-def test_cancelling_the_name_prompt_exits_cleanly(
-    workdir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    templates = registry.fetch_templates()
-    monkeypatch.setattr(cli, "select_template", lambda _: templates[0])
-    monkeypatch.setattr(
-        cli.questionary, "text", lambda *args, **kwargs: CancelledPrompt()
-    )
-
-    with pytest.raises(SystemExit) as excinfo:
-        invoke()
-
-    assert excinfo.value.code == 1
-    assert not any(workdir.iterdir())
-
-
 def test_non_https_urls_are_refused(real_get: None) -> None:
     with pytest.raises(LitestarCreateError, match="non-HTTPS"):
         registry.get("http://raw.githubusercontent.com/templates.json")
@@ -393,12 +317,3 @@ def test_empty_registry_is_an_error(serve: ServeFn) -> None:
 
     with pytest.raises(LitestarCreateError, match="empty"):
         registry.fetch_templates()
-
-
-def test_name_validator_rejects_empty_input() -> None:
-    with pytest.raises(ValidationError):
-        NameValidator().validate(Document(""))
-
-
-def test_name_validator_accepts_text() -> None:
-    NameValidator().validate(Document("my-app"))

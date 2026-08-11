@@ -1,49 +1,72 @@
 [project]
-name = "create-litestar"
-version = "0.1.2"
+name = "litestar-create"
+version = "0.1.3"
 description = "Easy way to start a Litestar project"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Code Generators",
+]
 dependencies = [
-    "advanced-alchemy>=0.20.0",
-    "copier>=9.3.1",
-    "pytest>=8.3.3",
-    "questionary>=2.0.1",
-    "rich>=13.9.1",
-    "ruff>=0.6.8",
-    "structlog>=24.4.0",
-    "uvicorn>=0.32.0",
+    "questionary>=2.1.1",
+    "rich>=15.0.0",
 ]
 
 [project.urls]
 Discord = "https://discord.gg/litestar"
 Funding = "https://github.com/sponsors/litestar-org"
-Homepage = "https://github.com/Kumzy/create-litestar"
-Issue = "https://github.com/Kumzy/create-litestar/issues/"
-Source = "https://github.com/Kumzy/create-litestar"
+Homepage = "https://github.com/Kumzy/litestar-create"
+Issue = "https://github.com/Kumzy/litestar-create/issues/"
+Source = "https://github.com/Kumzy/litestar-create"
 
 [project.scripts]
-create-litestar = "create_litestar.__main__:main"
+litestar-create = "litestar_create.__main__:main"
 
 [tool.ruff]
-extend-exclude = ["src/templates/basic"]
+# An empty section keeps ruff's config discovery inside this repo; without it,
+# ruff walks up and picks whatever pyproject.toml it finds in parent folders.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["litestar_create"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = ["if __name__ == .__main__.:"]
 
 [build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
+build-backend = "uv_build"
+requires = ["uv_build>=0.12.3,<0.13.0"]
+
+[tool.uv.build-backend]
+# The module lives at the repository root rather than under src/
+module-root = ""
+# uv_build sdists are minimal by default; ship the offline test suite too
+source-include = ["tests/**"]
 
 [dependency-groups]
 test = [
-    "pytest>=8.3.3",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
 ]
 lint = [
-    "mypy>=1.12.0",
-    "pre-commit>=3.5.0",
-    "pyright>=1.1.385",
-    "ruff>=0.6.8",
-    "slotscheck>=0.16.5",
-]
-dev = [
-    "litestar>=2.12.1",
-    "structlog>=24.4.0",
+    "mypy>=2.3.0",
+    "prek>=0.4.13",
+    "pyright>=1.1.411",
+    "ruff>=0.16.2",
+    "slotscheck>=0.20.1",
 ]

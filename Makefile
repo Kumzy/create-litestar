@@ -10,7 +10,7 @@ upgrade: ## Upgrade all dependencies to the latest stable versions
 	@echo "=> Updating all dependencies"
 	@uv lock --upgrade
 	@echo "=> Dependencies Updated"
-	@uv run pre-commit autoupdate
+	@uv run prek autoupdate
 	@echo "=> Updated Pre-commit"
 
 # =============================================================================
@@ -21,12 +21,12 @@ install-uv: ## Install latest version of uv
 	@curl -LsSf https://astral.sh/uv/install.sh | sh
 
 .PHONY: install
-install: clean ## Install the project, dependencies, and pre-commit for local development
+install: clean ## Install the project, dependencies, and prek for local development
 	@uv sync --all-extras --dev
 	@echo "=> Install complete!"
 
 clean:  ## Remove generated project files
-	@rm -rf .venv/ .*_cache/ .coverage  *.egg-info/ docs/_build
+	@rm -rf .venv/ .*_cache/ .coverage  *.egg-info/
 
 .PHONY: destroy
 destroy: ## Destroy the virtual environment
@@ -42,7 +42,7 @@ lock: ## Rebuild lockfiles from scratch, updating all dependencies
 .PHONY: mypy
 mypy: ## Run mypy
 	@echo "=> Running mypy"
-	@uv run mypy run
+	@uv run mypy litestar_create
 	@echo "=> mypy complete"
 
 .PHONY: mypy-nocache
@@ -60,25 +60,25 @@ pyright: ## Run pyright
 .PHONY: type-check
 type-check: mypy pyright ## Run all type checking
 
-.PHONY: pre-commit
-pre-commit: ## Runs pre-commit hooks; includes ruff formatting and linting, codespell
-	@echo "=> Running pre-commit process"
-	@uv run pre-commit run --all-files
+.PHONY: prek
+prek: ## Runs prek hooks; includes ruff formatting and linting, codespell
+	@echo "=> Running prek process"
+	@uv run prek run --all-files
 	@echo "=> Pre-commit complete"
 
 .PHONY: slotscheck
 slotscheck: ## Run slotscheck
 	@echo "=> Running slotscheck"
-	@uv run slotscheck create_litestar/
+	@uv run slotscheck litestar_create/
 	@echo "=> slotscheck complete"
 
 .PHONY: lint
-lint: pre-commit type-check slotscheck ## Run all linting
+lint: prek type-check slotscheck ## Run all linting
 
 .PHONY: coverage
 coverage: ## Run the tests and generate coverage report
 	@echo "=> Running tests with coverage"
-	@uv run pytest tests --cov -n auto
+	@uv run pytest --cov
 	@uv run coverage html
 	@uv run coverage xml
 	@echo "=> Coverage report generated"
@@ -86,15 +86,8 @@ coverage: ## Run the tests and generate coverage report
 .PHONY: test
 test: ## Run the tests
 	@echo "=> Running test cases"
-	@uv run pytest tests
+	@uv run pytest
 	@echo "=> Tests complete"
 
-.PHONY: test-examples
-test-examples: ## Run the examples tests
-	@uv run pytest docs/examples
-
-.PHONY: test-all
-test-all: test test-examples ## Run all tests
-
 .PHONY: check-all
-check-all: lint test-all coverage ## Run all linting, tests, and coverage checks
+check-all: lint test coverage ## Run all linting, tests, and coverage checks

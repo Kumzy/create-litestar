@@ -1,0 +1,62 @@
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - run: uv sync --locked --all-groups
+      - name: prek (ruff, codespell, hygiene hooks)
+        run: uv run prek run --all-files --show-diff-on-failure
+      - name: mypy
+        run: uv run mypy litestar_create
+      - name: pyright
+        run: uv run pyright
+      - name: slotscheck
+        run: uv run slotscheck litestar_create/
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --locked --all-groups
+      - name: Verify the venv runs the matrix Python, not .python-version
+        run: |
+          uv run python -c "
+          import sys
+          expected = '${{ matrix.python-version }}'
+          actual = f'{sys.version_info.major}.{sys.version_info.minor}'
+          assert actual == expected, f'venv runs {actual}, matrix expected {expected}'
+          "
+      - name: Test with python ${{ matrix.python-version }}
+        run: uv run pytest --cov
+
+  # Single required check for branch protection: green only when lint and
+  # every test matrix entry succeeded. Runs even when they fail (if: always)
+  # because GitHub can count a skipped required check as passing.
+  merge-gate:
+    needs: [lint, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless lint and test succeeded
+        run: |
+          [ "${{ needs.lint.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ]

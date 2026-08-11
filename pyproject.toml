@@ -19,7 +19,6 @@ classifiers = [
 ]
 dependencies = [
     "questionary>=2.1.1",
-    "rich>=15.0.0",
 ]
 
 [project.urls]

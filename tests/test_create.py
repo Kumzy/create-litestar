@@ -251,15 +251,15 @@ def test_interactive_prompts_drive_the_scaffold(
     workdir: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    templates = registry.fetch_templates()
-    monkeypatch.setattr(cli, "select_template", lambda _: templates[1])
+    selected = registry.fetch_templates()[0]
+    monkeypatch.setattr(cli, "select_template", lambda _: selected)
     monkeypatch.setattr(cli, "ask_project_name", lambda _: "My Cool API")
 
     invoke()
 
     assert (
         workdir / "my-cool-api" / "README.md"
-    ).read_text() == f"# {ARCHIVE_ROOT}/minimal/README.md"
+    ).read_text() == f"# {ARCHIVE_ROOT}/{selected.directory}/README.md"
 
 
 def test_registry_entry_missing_required_field(serve: ServeFn) -> None:
@@ -296,6 +296,7 @@ class CancelledPrompt:
 def test_cancelling_the_template_prompt_exits_cleanly(
     workdir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)  # get past the TTY guard
     monkeypatch.setattr(
         cli.questionary, "select", lambda *args, **kwargs: CancelledPrompt()
     )

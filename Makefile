@@ -42,7 +42,7 @@ lock: ## Rebuild lockfiles from scratch, updating all dependencies
 .PHONY: mypy
 mypy: ## Run mypy
 	@echo "=> Running mypy"
-	@uv run mypy run
+	@uv run mypy litestar_create
 	@echo "=> mypy complete"
 
 .PHONY: mypy-nocache

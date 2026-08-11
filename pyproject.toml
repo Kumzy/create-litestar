@@ -34,6 +34,3 @@ lint = [
     "ruff>=0.6.8",
     "slotscheck>=0.16.5",
 ]
-dev = [
-    "structlog>=24.4.0",
-]

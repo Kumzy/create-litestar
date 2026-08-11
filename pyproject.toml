@@ -3,6 +3,8 @@ name = "litestar-create"
 version = "0.1.3"
 description = "Easy way to start a Litestar project"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "questionary>=2.1.1",
@@ -37,8 +39,14 @@ show_missing = true
 exclude_also = ["if __name__ == .__main__.:"]
 
 [build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
+build-backend = "uv_build"
+requires = ["uv_build>=0.12.3,<0.13.0"]
+
+[tool.uv.build-backend]
+# The module lives at the repository root rather than under src/
+module-root = ""
+# uv_build sdists are minimal by default; ship the offline test suite too
+source-include = ["tests/**"]
 
 [dependency-groups]
 test = [

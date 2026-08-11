@@ -257,13 +257,20 @@ def test_network_failure_is_friendly(
 def test_http_error_is_friendly(
     real_get: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    error = urllib.error.HTTPError("https://example.com", 404, "Not Found", {}, None)  # type: ignore[arg-type]
+
     def not_found(*args: Any, **kwargs: Any) -> None:
-        raise urllib.error.HTTPError("https://example.com", 404, "Not Found", {}, None)  # type: ignore[arg-type]
+        raise error
 
     monkeypatch.setattr("urllib.request.urlopen", not_found)
 
     with pytest.raises(LitestarCreateError, match="404"):
         registry.fetch_templates()
+
+    # On Python 3.14 an HTTPError owns a temp file; close it, or garbage
+    # collection raises a ResourceWarning that our warning filter turns
+    # into a test failure.
+    error.close()
 
 
 def test_malformed_manifest_is_friendly(serve: ServeFn) -> None:

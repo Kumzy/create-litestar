@@ -78,7 +78,7 @@ lint: prek type-check slotscheck ## Run all linting
 .PHONY: coverage
 coverage: ## Run the tests and generate coverage report
 	@echo "=> Running tests with coverage"
-	@uv run pytest tests --cov -n auto
+	@uv run pytest --cov
 	@uv run coverage html
 	@uv run coverage xml
 	@echo "=> Coverage report generated"
@@ -86,15 +86,8 @@ coverage: ## Run the tests and generate coverage report
 .PHONY: test
 test: ## Run the tests
 	@echo "=> Running test cases"
-	@uv run pytest tests
+	@uv run pytest
 	@echo "=> Tests complete"
 
-.PHONY: test-examples
-test-examples: ## Run the examples tests
-	@uv run pytest docs/examples
-
-.PHONY: test-all
-test-all: test test-examples ## Run all tests
-
 .PHONY: check-all
-check-all: lint test-all coverage ## Run all linting, tests, and coverage checks
+check-all: lint test coverage ## Run all linting, tests, and coverage checks

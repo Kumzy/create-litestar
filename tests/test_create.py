@@ -6,10 +6,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from questionary import ValidationError
+
 from litestar_create import __main__ as cli
 from litestar_create.helpers import project, registry
 from litestar_create.helpers.constants import ARCHIVE_ROOT
 from litestar_create.helpers.errors import LitestarCreateError
+from litestar_create.helpers.validators import NameValidator
 
 # mirrors the live templates.json: a top-level "$schema" sibling, an optional
 # "featured", and "icon"/"tags" fields the CLI does not use and must ignore.
@@ -325,3 +328,70 @@ def test_slugify(answer: str, expected: str) -> None:
 def test_slugify_rejects_unusable_names() -> None:
     with pytest.raises(LitestarCreateError):
         project.slugify("---")
+
+
+class CancelledPrompt:
+    """Mimics questionary returning None, as it does when the user hits Ctrl-C."""
+
+    def ask(self) -> None:
+        return None
+
+
+def test_cancelling_the_template_prompt_exits_cleanly(
+    workdir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        cli.questionary, "select", lambda *args, **kwargs: CancelledPrompt()
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        invoke()
+
+    assert excinfo.value.code == 1
+    assert not any(workdir.iterdir())
+
+
+def test_cancelling_the_name_prompt_exits_cleanly(
+    workdir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    templates = registry.fetch_templates()
+    monkeypatch.setattr(cli, "select_template", lambda _: templates[0])
+    monkeypatch.setattr(
+        cli.questionary, "text", lambda *args, **kwargs: CancelledPrompt()
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        invoke()
+
+    assert excinfo.value.code == 1
+    assert not any(workdir.iterdir())
+
+
+def test_non_https_urls_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.undo()  # drop the fake registry so the real get() runs
+
+    with pytest.raises(LitestarCreateError, match="non-HTTPS"):
+        registry.get("http://raw.githubusercontent.com/templates.json")
+
+
+def test_empty_registry_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        registry, "get", lambda url: json.dumps({"templates": []}).encode()
+    )
+
+    with pytest.raises(LitestarCreateError, match="empty"):
+        registry.fetch_templates()
+
+
+class FakeDocument:
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+
+def test_name_validator_rejects_empty_input() -> None:
+    with pytest.raises(ValidationError):
+        NameValidator().validate(FakeDocument(""))
+
+
+def test_name_validator_accepts_text() -> None:
+    NameValidator().validate(FakeDocument("my-app"))

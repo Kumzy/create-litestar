@@ -23,6 +23,19 @@ litestar-create = "litestar_create.__main__:main"
 # An empty section keeps ruff's config discovery inside this repo; without it,
 # ruff walks up and picks whatever pyproject.toml it finds in parent folders.
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["litestar_create"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = ["if __name__ == .__main__.:"]
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
@@ -30,6 +43,7 @@ requires = ["hatchling"]
 [dependency-groups]
 test = [
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
 ]
 lint = [
     "mypy>=2.3.0",

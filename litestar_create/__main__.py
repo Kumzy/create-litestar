@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 import questionary
@@ -50,7 +51,16 @@ def print_templates(templates: tuple[Template, ...]) -> None:
         )
 
 
+def require_tty() -> None:
+    """Interactive prompts need a terminal; scripts must pass name and -t."""
+    if not sys.stdin.isatty():
+        raise LitestarCreateError(
+            "stdin is not a terminal; pass a project name and -t/--template"
+        )
+
+
 def select_template(templates: tuple[Template, ...]) -> Template:
+    require_tty()
     answer = questionary.select(
         message="Template:",
         choices=[
@@ -66,6 +76,7 @@ def select_template(templates: tuple[Template, ...]) -> Template:
 
 
 def ask_project_name(template: Template) -> str:
+    require_tty()
     answer = questionary.text(
         message="Project name:",
         qmark=get_qmark(),
@@ -107,7 +118,7 @@ def run(args: argparse.Namespace) -> None:
 
     template = (
         find_template(templates, args.template)
-        if args.template
+        if args.template is not None
         else select_template(templates)
     )
     name = args.name or ask_project_name(template)

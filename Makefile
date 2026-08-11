@@ -1,5 +1,5 @@
 .DEFAULT_GOAL:=help
-.PHONY: help install clean update export lint type-check test
+.PHONY: help install clean lint type-check test
 
 .PHONY: help
 help: ## Display this help text for Makefile
@@ -22,7 +22,7 @@ install-uv: ## Install latest version of uv
 
 .PHONY: install
 install: clean ## Install the project, dependencies, and prek for local development
-	@uv sync --all-extras --dev
+	@uv sync --all-groups
 	@echo "=> Install complete!"
 
 clean:  ## Remove generated project files
@@ -31,10 +31,6 @@ clean:  ## Remove generated project files
 .PHONY: destroy
 destroy: ## Destroy the virtual environment
 	@rm -rf .venv
-
-.PHONY: lock
-lock: ## Rebuild lockfiles from scratch, updating all dependencies
-	@uv lock --upgrade
 
 # =============================================================================
 # Tests, Linting, Coverage
@@ -48,7 +44,7 @@ mypy: ## Run mypy
 .PHONY: mypy-nocache
 mypy-nocache: ## Run Mypy without cache
 	@echo "=> Running mypy without a cache"
-	@uv run mypy
+	@uv run mypy --no-incremental litestar_create
 	@echo "=> mypy complete"
 
 .PHONY: pyright

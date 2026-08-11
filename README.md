@@ -3,9 +3,9 @@
 Easy way to start a Litestar project
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="media/litestar-framework-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="media/litestar-framework-light.svg">
-  <img alt="Litestar framework banner" src="media/litestar-framework-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Kumzy/litestar-create/main/media/litestar-framework-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Kumzy/litestar-create/main/media/litestar-framework-light.svg">
+  <img alt="Litestar framework banner" src="https://raw.githubusercontent.com/Kumzy/litestar-create/main/media/litestar-framework-light.svg">
 </picture>
 
 ## Quick start
@@ -59,5 +59,7 @@ Run `litestar-create --list` to see the available templates.
 ## Development
 
 ```bash
-uv sync
+uv sync --all-groups   # plain `uv sync` skips the test and lint groups
+make test
+make lint
 ```

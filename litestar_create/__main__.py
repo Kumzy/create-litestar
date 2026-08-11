@@ -6,17 +6,17 @@ from rich.console import Console
 from rich.style import Style
 from rich.table import Table
 
-from create_litestar.helpers.cli import get_qmark, litestar_style
-from create_litestar.helpers.constants import ARCHIVE_ROOT, LITESTAR_COLOR
-from create_litestar.helpers.errors import CreateLitestarError
-from create_litestar.helpers.project import ensure_available, extract_template, slugify
-from create_litestar.helpers.registry import (
+from litestar_create.helpers.cli import get_qmark, litestar_style
+from litestar_create.helpers.constants import ARCHIVE_ROOT, LITESTAR_COLOR
+from litestar_create.helpers.errors import LitestarCreateError
+from litestar_create.helpers.project import ensure_available, extract_template, slugify
+from litestar_create.helpers.registry import (
     Template,
     download_archive,
     fetch_templates,
     find_template,
 )
-from create_litestar.helpers.validators import NameValidator
+from litestar_create.helpers.validators import NameValidator
 
 console = Console()
 console_style = Style(color=LITESTAR_COLOR, bold=True)
@@ -24,7 +24,7 @@ console_style = Style(color=LITESTAR_COLOR, bold=True)
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="create-litestar", description="Create a new Litestar project"
+        prog="litestar-create", description="Create a new Litestar project"
     )
     parser.add_argument("name", nargs="?", help="Name of the new project")
     parser.add_argument("-t", "--template", help="Template to scaffold from")
@@ -119,7 +119,7 @@ def main() -> None:
         print_banner()
     try:
         run(args)
-    except CreateLitestarError as e:
+    except LitestarCreateError as e:
         console.print(f"[red]{e}[/]")
         raise SystemExit(1) from e
 

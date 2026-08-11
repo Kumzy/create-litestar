@@ -6,7 +6,7 @@ import importlib.metadata
 
 __all__ = ["__version__", "__project__"]
 
-__version__ = importlib.metadata.version("create-litestar")
+__version__ = importlib.metadata.version("litestar-create")
 """Version of the project."""
-__project__ = importlib.metadata.metadata("create-litestar")["Name"]
+__project__ = importlib.metadata.metadata("litestar-create")["Name"]
 """Name of the project."""

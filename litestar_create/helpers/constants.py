@@ -1,6 +1,6 @@
 DEFAULT_PROJECT_NAME = "litestar-project"
 
-DEFAULT_PROJECT_DESCRIPTION = "Project created with create-litestar"
+DEFAULT_PROJECT_DESCRIPTION = "Project created with litestar-create"
 
 LITESTAR_COLOR = "#edb641"
 

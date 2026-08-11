@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 
-from create_litestar import __main__ as cli
-from create_litestar.helpers import project, registry
-from create_litestar.helpers.constants import ARCHIVE_ROOT
-from create_litestar.helpers.errors import CreateLitestarError
+from litestar_create import __main__ as cli
+from litestar_create.helpers import project, registry
+from litestar_create.helpers.constants import ARCHIVE_ROOT
+from litestar_create.helpers.errors import LitestarCreateError
 
 # mirrors the live templates.json: a top-level "$schema" sibling, an optional
 # "featured", and "icon"/"tags" fields the CLI does not use and must ignore.
@@ -141,12 +141,12 @@ def test_scaffold_prints_next_steps(
 
 
 def test_unknown_template_suggests_close_match() -> None:
-    with pytest.raises(CreateLitestarError, match="api"):
+    with pytest.raises(LitestarCreateError, match="api"):
         invoke("out", "--template", "apo")
 
 
 def test_unknown_template_without_close_match() -> None:
-    with pytest.raises(CreateLitestarError, match="--list"):
+    with pytest.raises(LitestarCreateError, match="--list"):
         invoke("out", "--template", "zzzzzzzz")
 
 
@@ -155,7 +155,7 @@ def test_existing_non_empty_target_aborts(workdir: Path) -> None:
     target.mkdir()
     (target / "keep.txt").write_text("mine")
 
-    with pytest.raises(CreateLitestarError, match="not empty"):
+    with pytest.raises(LitestarCreateError, match="not empty"):
         invoke("taken", "--template", "api")
 
     assert (target / "keep.txt").read_text() == "mine"
@@ -182,7 +182,7 @@ def test_path_traversal_member_is_rejected(
         lambda url: json.dumps(MANIFEST).encode() if "json" in url else malicious,
     )
 
-    with pytest.raises(CreateLitestarError):
+    with pytest.raises(LitestarCreateError):
         invoke("out", "--template", "api")
 
     assert not (workdir / "out").exists()
@@ -201,7 +201,7 @@ def test_partial_extraction_leaves_no_temporary_files(
         lambda url: json.dumps(MANIFEST).encode() if "json" in url else malicious,
     )
 
-    with pytest.raises(CreateLitestarError):
+    with pytest.raises(LitestarCreateError):
         invoke("out", "--template", "api")
 
     assert list(workdir.iterdir()) == []
@@ -217,7 +217,7 @@ def test_template_without_matching_archive_directory(
         lambda url: json.dumps(MANIFEST).encode() if "json" in url else empty,
     )
 
-    with pytest.raises(CreateLitestarError):
+    with pytest.raises(LitestarCreateError):
         invoke("out", "--template", "api")
 
     assert not (workdir / "out").exists()
@@ -231,7 +231,7 @@ def test_network_failure_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("urllib.request.urlopen", boom)
 
-    with pytest.raises(CreateLitestarError, match="could not fetch"):
+    with pytest.raises(LitestarCreateError, match="could not fetch"):
         registry.fetch_templates()
 
 
@@ -243,19 +243,19 @@ def test_http_error_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("urllib.request.urlopen", not_found)
 
-    with pytest.raises(CreateLitestarError, match="404"):
+    with pytest.raises(LitestarCreateError, match="404"):
         registry.fetch_templates()
 
 
 def test_malformed_manifest_is_friendly(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(registry, "get", lambda url: b"<html>not json</html>")
 
-    with pytest.raises(CreateLitestarError, match="could not read"):
+    with pytest.raises(LitestarCreateError, match="could not read"):
         registry.fetch_templates()
 
 
 def test_main_turns_errors_into_exit_code(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("sys.argv", ["create-litestar", "out", "--template", "nope"])
+    monkeypatch.setattr("sys.argv", ["litestar-create", "out", "--template", "nope"])
 
     with pytest.raises(SystemExit) as excinfo:
         cli.main()
@@ -293,7 +293,7 @@ def test_registry_entry_missing_required_field(monkeypatch: pytest.MonkeyPatch) 
         lambda url: json.dumps({"templates": [{"name": "broken"}]}).encode(),
     )
 
-    with pytest.raises(CreateLitestarError, match="directory"):
+    with pytest.raises(LitestarCreateError, match="directory"):
         registry.fetch_templates()
 
 
@@ -319,5 +319,5 @@ def test_slugify(answer: str, expected: str) -> None:
 
 
 def test_slugify_rejects_unusable_names() -> None:
-    with pytest.raises(CreateLitestarError):
+    with pytest.raises(LitestarCreateError):
         project.slugify("---")

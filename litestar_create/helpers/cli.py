@@ -1,5 +1,5 @@
 from questionary import Style
-from create_litestar.helpers.constants import LITESTAR_COLOR
+from litestar_create.helpers.constants import LITESTAR_COLOR
 
 litestar_style = Style(
     [

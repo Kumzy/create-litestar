@@ -5,13 +5,13 @@ import tarfile
 import tempfile
 from pathlib import Path
 
-from create_litestar.helpers.errors import CreateLitestarError
+from litestar_create.helpers.errors import LitestarCreateError
 
 
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-z0-9.-]+", "-", value.strip().lower()).strip("-.")
     if not slug:
-        raise CreateLitestarError(f"{value!r} cannot be used as a project name")
+        raise LitestarCreateError(f"{value!r} cannot be used as a project name")
     return slug
 
 
@@ -19,7 +19,7 @@ def ensure_available(target: Path) -> None:
     if not target.exists():
         return
     if target.is_file() or any(target.iterdir()):
-        raise CreateLitestarError(f"{target} already exists and is not empty")
+        raise LitestarCreateError(f"{target} already exists and is not empty")
 
 
 def strip_prefix(archive: tarfile.TarFile, prefix: str) -> list[tarfile.TarInfo]:
@@ -46,12 +46,12 @@ def extract_template(payload: bytes, prefix: str, target: Path) -> None:
         with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
             members = strip_prefix(archive, prefix)
             if not members:
-                raise CreateLitestarError(
+                raise LitestarCreateError(
                     f"the template archive contains no files under {prefix!r}"
                 )
             archive.extractall(path=staging, members=members, filter="data")
         move_into(staging, target)
     except tarfile.TarError as e:
-        raise CreateLitestarError(f"could not extract the template archive: {e}") from e
+        raise LitestarCreateError(f"could not extract the template archive: {e}") from e
     finally:
         shutil.rmtree(staging, ignore_errors=True)

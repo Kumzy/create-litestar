@@ -69,7 +69,7 @@ pre-commit: ## Runs pre-commit hooks; includes ruff formatting and linting, code
 .PHONY: slotscheck
 slotscheck: ## Run slotscheck
 	@echo "=> Running slotscheck"
-	@uv run slotscheck create_litestar/
+	@uv run slotscheck litestar_create/
 	@echo "=> slotscheck complete"
 
 .PHONY: lint

@@ -32,6 +32,24 @@ $ uvx litestar-create@latest [<name>] [-t,--template=<template>] [--list]
 $ uvx litestar-create@latest my-app -t plugin
 ```
 
+All available options are listed by `--help`:
+
+```sh-session
+$ litestar-create --help
+usage: litestar-create [-h] [-t TEMPLATE] [--list] [name]
+
+Create a new Litestar project
+
+positional arguments:
+  name                  Name of the new project
+
+options:
+  -h, --help            show this help message and exit
+  -t, --template TEMPLATE
+                        Template to scaffold from
+  --list                List the available templates and exit
+```
+
 ## Templates
 
 Templates are pulled from the

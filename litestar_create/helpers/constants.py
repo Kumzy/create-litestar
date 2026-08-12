@@ -1,6 +1,6 @@
 LITESTAR_COLOR = "#edb641"
 
-TEMPLATES_REPO = "Kumzy/litestar-templates"
+TEMPLATES_REPO = "litestar-org/litestar-templates"
 TEMPLATES_BRANCH = "main"
 REQUEST_TIMEOUT = 30
 

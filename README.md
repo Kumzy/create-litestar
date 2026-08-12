@@ -53,7 +53,7 @@ options:
 ## Templates
 
 Templates are pulled from the
-[litestar-templates](https://github.com/Kumzy/litestar-templates) repository.
+[litestar-templates](https://github.com/litestar-org/litestar-templates) repository.
 Run `litestar-create --list` to see the available templates.
 
 ## Development
